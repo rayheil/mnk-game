@@ -36,6 +36,26 @@ public final class LINQ
 	}
 	
 	/**
+	 * Determines if any element of {@code source} satisfies {@code predicate}.
+	 * @param <T> The iterable type.
+	 * @param source The source iterable object.
+	 * @param predicate The predicate an object in {@code source} must satisfy.
+	 * @return Returns true if any element of {@code source} satisfies {@code predicate} and false otherwise.
+	 * @throws NullPointerException Thrown if {@code source} or {@code predicate} is null.
+	 */
+	public static <T> boolean Any(Iterable<? extends T> source, SingleInputPredicate<T> predicate)
+	{
+		if(source == null || predicate == null)
+			throw new NullPointerException();
+		
+		for(T t : source)
+			if(predicate.Evaluate(t))
+				return true;
+		
+		return false;
+	}
+	
+	/**
 	 * Returns a new iterable object with {@code obj} appended to the end of {@code source}.
 	 * <br><br>
 	 * For example, given the sequence {1,2,3} and the element 0, we produce the sequence {1,2,3,0}.
@@ -195,12 +215,11 @@ public final class LINQ
 						while(Iter.hasNext())
 						{
 							T temp = Iter.next();
+							Index++;
 							
-							if(!Items.contains(temp))
+							if(IndexOf(source,temp) == Index) // If the current index is the first index of the element, then it's distinct (but subsequent versions of it are not)
 							{
 								Next = temp;
-								Items.add(temp);
-								
 								return true;
 							}
 						}
@@ -218,7 +237,7 @@ public final class LINQ
 						return ret;
 					}
 					
-					protected LinkedList<T> Items = new LinkedList<T>();
+					protected int Index = -1;
 					protected T Next = null;
 					protected Iterator<? extends T> Iter = source.iterator();
 				};
@@ -283,9 +302,9 @@ public final class LINQ
 	
 	/**
 	 * Computes the set difference of {@code source} minus {@code except}.
-	 * The order of the output elements is the same as the order they appear in {@code source}.
+	 * The order of the output elements is the same as the order they appear in {@code source} and are distinct.
 	 * <br><br>
-	 * For example, given the sequences {1,2,3} and {2,4}, we produce the sequence {1,3}.
+	 * For example, given the sequences {1,2,3,3} and {2,4}, we produce the sequence {1,3}.
 	 * @param <T> The iterable type.
 	 * @param source The source set.
 	 * @param except The set to exclude.
@@ -297,7 +316,7 @@ public final class LINQ
 		if(source == null || except == null)
 			throw new NullPointerException();
 		
-		return Where(source,t -> !Contains(except,t));
+		return Distinct(Where(source,t -> !Contains(except,t)));
 	}
 	
 	/**
@@ -339,7 +358,65 @@ public final class LINQ
 	}
 	
 	/**
-	 * Computes the intersection of {@code source_b} minus {@code source_b}.
+	 * Finds the first index of {@code target} in {@code source}.
+	 * @param <T> The iterable type.
+	 * @param source The source sequence.
+	 * @param target The element to look for.
+	 * @return Returns the index of the first instance of {@code target} in {@code source} or -1 if it is not present.
+	 * @throws NullPointerException Thrown if {@code source} is null.
+	 */
+	public static <T> int IndexOf(Iterable<? extends T> source, T target)
+	{
+		if(source == null)
+			throw new NullPointerException();
+		
+		int i = 0;
+		
+		for(T t : source)
+			if(t == null ? target == null : t.equals(target))
+				return i;
+			else
+				i++;
+		
+		return -1;
+	}
+	
+	/**
+	 * Finds the first index of {@code target} in {@code source}.
+	 * Starts looking at index {@code start}.
+	 * @param <T> The iterable type.
+	 * @param source The source sequence.
+	 * @param target The element to look for.
+	 * @param start The index to start looking at.
+	 * @return Returns the index of the first instance of {@code target} in {@code source} at or after index {@code start} or -1 if it is not present.
+	 * @throws NullPointerException Thrown if {@code source} is null.
+	 * @throws IndexOutOfBoundsException Thrown if {@code start} is less than zero or at least the length of the sequence.
+	 */
+	public static <T> int IndexOf(Iterable<? extends T> source, T target, int start)
+	{
+		if(source == null)
+			throw new NullPointerException();
+		
+		if(start < 0)
+			throw new IndexOutOfBoundsException();
+		
+		int i = 0;
+		
+		for(T t : source)
+			if(i >= start && (t == null ? target == null : t.equals(target)))
+				return i; // We know that start < Count since we have i >= start
+			else
+				i++;
+		
+		// i is equal to Count at this point
+		if(start >= i)
+			throw new IndexOutOfBoundsException();
+		
+		return -1;
+	}
+	
+	/**
+	 * Computes the intersection of {@code source_a} and {@code source_b}.
 	 * The order of the output sequence is the same order that the elements appear in {@code source_a}
 	 * <br><br>
 	 * For example, given the sequences {1,2,3,4} and {2,5,4}, we produce the sequence {2,4}.
@@ -354,7 +431,68 @@ public final class LINQ
 		if(source_a == null || source_b == null)
 			throw new NullPointerException();
 		
-		return Where(source_a,t -> Contains(source_b,t));
+		return Distinct(Where(source_a,t -> Contains(source_b,t)));
+	}
+	
+	/**
+	 * Finds the last index of {@code target} in {@code source}.
+	 * @param <T> The iterable type.
+	 * @param source The source sequence.
+	 * @param target The element to look for.
+	 * @return Returns the index of the last instance of {@code target} in {@code source} or -1 if it is not present.
+	 * @throws NullPointerException Thrown if {@code source} is null.
+	 */
+	public static <T> int LastIndexOf(Iterable<? extends T> source, T target)
+	{
+		if(source == null)
+			throw new NullPointerException();
+		
+		int i = 0;
+		int ret = -1;
+		
+		for(T t : source)
+			if(t == null ? target == null : t.equals(target))
+				ret = i++;
+			else
+				i++;
+		
+		return ret;
+	}
+	
+	/**
+	 * Finds the last index of {@code target} in {@code source}.
+	 * Stops looking at index {@code end}.
+	 * @param <T> The iterable type.
+	 * @param source The source sequence.
+	 * @param target The element to look for.
+	 * @param end The last index to look at (exclusive).
+	 * @return Returns the index of the last instance of {@code target} in {@code source} before index {@code end} or -1 if it is not present.
+	 * @throws NullPointerException Thrown if {@code source} is null.
+	 * @throws IndexOutOfBoundsException Thrown if {@code end} is less than zero or greater than the length of the sequence.
+	 */
+	public static <T> int LastIndexOf(Iterable<? extends T> source, T target, int end)
+	{
+		if(source == null)
+			throw new NullPointerException();
+		
+		if(end < 0)
+			throw new IndexOutOfBoundsException();
+		
+		int i = 0;
+		int ret = -1;
+		
+		for(T t : source)
+			if(i < end && (t == null ? target == null : t.equals(target)))
+				ret = i++;
+			else // If i >= end, we still need to compute Count
+				i++;
+		
+		// i is equal to Count at this point
+		// end is exclusive, so Count is permitted
+		if(end > i)
+			throw new IndexOutOfBoundsException();
+		
+		return ret;
 	}
 	
 	/**
@@ -733,14 +871,14 @@ public final class LINQ
 	 * This function applies {@code operation} to each successive element of {@code source} with the result of the previous invocation.
 	 * The lefthand side of the first invocation of {@code operation} is null.
 	 * <br><br>
-	 * For example, given the sequence {1,2,3,4} and the transformation of [previous] * [input], we produce the Double sequence {null * 1 = 1,2,6,24}.
+	 * For example, given the sequence {1,2,3,4} and the transformation of [previous] * [input], we produce the Double sequence {(null * 1 = 1),2,6,24}.
 	 * @param <T> The iterable type.
 	 * @param source The source sequence.
 	 * @param operation The operation to perform.
 	 * @return Returns the 'sum' of the sequence {@code source}. In the degenerate 'sum' when {@code source} is empty, this will return null.
 	 * @throws NullPointerException Thrown if {@code source} or {@code operation} is null.
 	 */
-	public static <T> T Sum(Iterable<? extends T> source, DoubleInputTransformation<T,T> operation)
+	public static <T> T Sum(Iterable<? extends T> source, BinaryOperation<T,T> operation)
 	{
 		if(source == null || operation == null)
 			throw new NullPointerException();
@@ -813,10 +951,10 @@ public final class LINQ
 	}
 	
 	/**
-	 * Computes the union of {@code source_a} minus {@code source_b}.
-	 * The order of the output sequence is all elements of {@code source_a} in the order they appear and then all elements of {@code source_b} in the order they appear that are not in {@code source_a}.
+	 * Computes the union of {@code source_a} and {@code source_b}.
+	 * The order of the output sequence is all distinct elements of {@code source_a} in the order they appear and then all distinct elements of {@code source_b} in the order they appear that are not in {@code source_a}.
 	 * <br><br>
-	 * For example, given the sequences {1,2,3} and {3,4,5}, we produce the sequence {1,2,3,4,5}.
+	 * For example, given the sequences {1,2,3,3} and {3,4,5}, we produce the sequence {1,2,3,4,5}.
 	 * @param <T> The iterable type.
 	 * @param source_a The first set.
 	 * @param source_b The second set.
@@ -828,7 +966,7 @@ public final class LINQ
 		if(source_a == null || source_b == null)
 			throw new NullPointerException();
 		
-		return Concatenate(source_a,Where(source_b,t -> !Contains(source_a,t)));
+		return Distinct(Concatenate(source_a,source_b));
 	}
 	
 	/**
@@ -970,5 +1108,20 @@ public final class LINQ
 		 * The value provided is null when there is no previous output value.
 		 */
 		public abstract O Evaluate(I input, O previous);
+	}
+	
+	/**
+	 * Performs a binary operation.
+	 * @author Dawn Nye
+	 */
+	@FunctionalInterface public interface BinaryOperation<I,O>
+	{
+		/**
+		 * Performs a binary operation.
+		 * @param LHS The left hand side of the operation.
+		 * @param RHS The right hand side of the operation.
+		 * @return Returns the result of the operation.
+		 */
+		public abstract O Evaluate(I LHS, I RHS);
 	}
 }
