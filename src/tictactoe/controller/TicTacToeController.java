@@ -14,7 +14,7 @@ import tictactoe.view.TicTacToeView;
 /**
  * Controls a Tic Tac Toe game.
  * @author Dawn Nye
- * @author YOUR NAME HERE
+ * @author Ray Heil
  */
 public class TicTacToeController implements ITicTacToeController
 {

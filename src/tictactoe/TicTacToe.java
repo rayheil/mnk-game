@@ -24,15 +24,14 @@ public class TicTacToe extends GameEngine
 	public TicTacToe(int width, int height, int win_len)
 	{
 		// Use the GameEngine to declare a new game
-		// TODO If I get an 'Image icon' that could be useful, replace that null
 		super("CSC 207 Tic Tac Toe",null,168 * width + 16,168 * height + 39);
 		
-		// TODO figure out how to assign these from the commandline. maybe some simple flags,
+		// TODO figure out how to assign these from the command line. maybe some simple flags,
 		// -m, -n, -k (such as ./BootStrap -m 3 -n 3 -k 3 for a normal game)
 		Width = width;
 		Height = height;
 		WinningLength = win_len;
-		
+				
 		return;
 	}
 	

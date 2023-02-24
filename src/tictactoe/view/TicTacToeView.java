@@ -5,6 +5,12 @@ import tictactoe.model.PieceType;
 
 public class TicTacToeView implements ITicTacToeView {
 
+	public TicTacToeView(int width, int height)
+	{
+		Width = width;
+		Height = height;
+	}
+	
 	@Override
 	public void PlacePiece(Vector2i pos, PieceType piece) {
 		// TODO Auto-generated method stub
@@ -48,15 +54,21 @@ public class TicTacToeView implements ITicTacToeView {
 	}
 
 	@Override
-	public int Width() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	public int Width() 
+	{return Width;}
 
 	@Override
-	public int Height() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
+	public int Height()
+	{return Height;}
+	
+	/**
+	 * The height of this view.
+	 */
+	protected int Height;
+	
+	/**
+	 * The width of this view.
+	 */
+	protected int Width;
 
 }
