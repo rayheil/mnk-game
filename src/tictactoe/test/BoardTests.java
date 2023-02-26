@@ -2,13 +2,13 @@ package tictactoe.test;
 
 import tictactoe.model.TicTacToeBoard;
 import tictactoe.model.PieceType;
+import gamecore.LINQ.LINQ;
 import gamecore.datastructures.vectors.Vector2i;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
-import java.util.LinkedList;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -20,7 +20,7 @@ import org.junit.Test;
 public class BoardTests
 {
 	@BeforeClass
-	public static void TestConstructor()
+	public static void Constructor()
 	{return;} // This runs before any other test code executes
 	
 	@Before
@@ -32,11 +32,11 @@ public class BoardTests
 	{return;} // This runs after each test, even if the test (or SetUp) fails or throws an exception
 	
 	@AfterClass
-	public static void TestDestructor()
+	public static void Destructor()
 	{return;} // This runs after any other test code executes
 	
 	@Test
-	public void TestBoardDefaultConstructor()
+	public void BoardDefaultConstructor()
 	{
 		TicTacToeBoard b = new TicTacToeBoard(3, 3, 3);
 		for (int i = 0; i < 3; i++)
@@ -45,12 +45,246 @@ public class BoardTests
 	}
 	
 	@Test
-	public void TestGet()
+	public void Get()
 	{
 		TicTacToeBoard b = new TicTacToeBoard(3, 3, 3);
 		b.Set(PieceType.CROSS, new Vector2i(2, 0));
 		assertEquals(PieceType.CROSS, b.Get(new Vector2i(2, 0)));
 	}
+		
+	@Test
+	public void WinNoPlays()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 2));
+		assertEquals(winning, null);
+	}
 	
-	// TODO WHAT IF I NEVER TESTED ANYTHING LMAOOOOOO
+	@Test
+	public void WinHorizontal()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CROSS, new Vector2i(0, 0));
+		b.Set(PieceType.CROSS, new Vector2i(0, 1));
+		b.Set(PieceType.CROSS, new Vector2i(0, 2));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 2));
+		assertNotEquals(winning, null);
+	}
+	
+	@Test
+	public void WinHorizontalNoWinner()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 1));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 1));
+		assertEquals(winning, null);
+	}
+	
+	@Test
+	public void WinVertical()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CROSS, new Vector2i(0, 0));
+		b.Set(PieceType.CROSS, new Vector2i(1, 0));
+		b.Set(PieceType.CROSS, new Vector2i(2, 0));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 0));
+		assertNotEquals(winning, null);
+	}
+	
+	@Test
+	public void WinVerticalNoWinner()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 0));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 0));
+		assertEquals(winning, null);
+	}
+	
+	@Test
+	public void WinDiagonalUp()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CROSS, new Vector2i(0, 0));
+		b.Set(PieceType.CROSS, new Vector2i(1, 1));
+		b.Set(PieceType.CROSS, new Vector2i(2, 2));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 1));
+		assertNotEquals(winning, null);
+	}
+	
+	@Test
+	public void WinDiagonalUpNoWinner()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 1));
+		b.Set(PieceType.CIRCLE, new Vector2i(2, 1));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 0));
+		assertEquals(winning, null);
+	}
+	
+	@Test
+	public void WinDiagonalDown()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CROSS, new Vector2i(2, 0));
+		b.Set(PieceType.CROSS, new Vector2i(1, 1));
+		b.Set(PieceType.CROSS, new Vector2i(0, 2));
+
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 1));
+		assertNotEquals(winning, null);
+	}
+	
+	@Test
+	public void WinDiagonalDownNoWinner()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CIRCLE, new Vector2i(2, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 1));
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 0));
+		assertEquals(winning, null);
+	}
+	
+	@Test
+	public void WinLargeBoardHorizontal()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(15, 15, 5);
+		b.Set(PieceType.CROSS, new Vector2i(7, 4));
+		b.Set(PieceType.CROSS, new Vector2i(7,6));
+		b.Set(PieceType.CROSS, new Vector2i(7,8));
+		b.Set(PieceType.CROSS, new Vector2i(7,5));
+		b.Set(PieceType.CROSS, new Vector2i(7,7));
+				
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(7, 8));
+		assertEquals(LINQ.Count(winning), 5);
+	}
+	
+	@Test
+	public void WinLargeBoardVertical()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(15, 15, 5);
+		b.Set(PieceType.CROSS, new Vector2i(4, 7));
+		b.Set(PieceType.CROSS, new Vector2i(5, 7));
+		b.Set(PieceType.CROSS, new Vector2i(6, 7));
+		b.Set(PieceType.CROSS, new Vector2i(7, 7));
+		b.Set(PieceType.CROSS, new Vector2i(3, 7));
+				
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(6, 7));
+		assertEquals(LINQ.Count(winning), 5);
+	}
+	
+	@Test
+	public void WinLargeBoardDiagonalDown()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(15, 15, 5);
+		b.Set(PieceType.CROSS, new Vector2i(4, 1));
+		b.Set(PieceType.CROSS, new Vector2i(5, 2));
+		b.Set(PieceType.CROSS, new Vector2i(6, 3));
+		b.Set(PieceType.CROSS, new Vector2i(7, 4));
+		b.Set(PieceType.CROSS, new Vector2i(8, 5));
+				
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(7, 4));
+		assertEquals(LINQ.Count(winning), 5);
+	}
+	
+	@Test
+	public void WinLargeBoardDiagonalUp()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(15, 15, 5);
+		b.Set(PieceType.CROSS, new Vector2i(4, 5));
+		b.Set(PieceType.CROSS, new Vector2i(5, 4));
+		b.Set(PieceType.CROSS, new Vector2i(6, 3));
+		b.Set(PieceType.CROSS, new Vector2i(7, 2));
+		b.Set(PieceType.CROSS, new Vector2i(8, 1));
+				
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(7, 2));
+		assertEquals(LINQ.Count(winning), 5);
+	}
+	
+	@Test
+	public void WinRectangularBoardHorizontal()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(10, 3, 4);
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 4));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 5));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 6));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 7));
+		
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 7));
+		assertEquals(LINQ.Count(winning), 4);
+	}
+	
+	@Test
+	public void WinRectangularBoardVertical()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(10, 3, 3);
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 4));
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 4));
+		b.Set(PieceType.CIRCLE, new Vector2i(2, 4));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 7));
+		
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 4));
+		assertEquals(LINQ.Count(winning), 3);
+	}
+	
+	@Test
+	public void WinRectangularBoardDiagonalDown()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(10, 3, 3);
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 5));
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 4));
+		b.Set(PieceType.CIRCLE, new Vector2i(2, 6));
+				
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 4));
+		assertEquals(LINQ.Count(winning), 3);
+	}
+	
+	@Test
+	public void WinRectangularBoardDiagonalUp()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(10, 3, 3);
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 2));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 1));
+		b.Set(PieceType.CIRCLE, new Vector2i(2, 0));
+				
+		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(2, 0));
+		assertEquals(LINQ.Count(winning), 3);
+	}
+	
+	@Test
+	public void IsFinishedStalemate()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(2,2,2);
+		b.Set(PieceType.CIRCLE, new Vector2i(0,0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1,1));
+		b.Set(PieceType.CROSS, new Vector2i(1,0));
+		b.Set(PieceType.CROSS, new Vector2i(0,0));
+		
+		assertTrue(b.IsFinished());
+	}
+	
+	@Test
+	public void IsFinishedWinner()
+	{
+		// reasonably big board, will make it check many cells
+		// it seems fast enough, mehhh
+		TicTacToeBoard b = new TicTacToeBoard(1920,1080,3); 
+		b.Set(PieceType.CROSS, new Vector2i(1079, 1917));
+		b.Set(PieceType.CROSS, new Vector2i(1079, 1918));
+		b.Set(PieceType.CROSS, new Vector2i(1079, 1919));
+
+		assertTrue(b.IsFinished());
+	}
+	
+	@Test
+	public void IsFinishedNotFinished()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 0));
+
+		assertFalse(b.IsFinished());
+	}
 }
