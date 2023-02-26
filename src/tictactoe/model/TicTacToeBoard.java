@@ -72,6 +72,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		this.Width = width;
 		this.Height = height;
 		this.WinningLength = winningLength;
+		this.Count = 0;
 		
 		for (int i = 0; i < Height(); i++)
 			for (int j = 0; j < Width(); j++)
@@ -80,7 +81,6 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	
 	/**
 	 * {@inheritDoc}
-	 * @author Ray Heil
 	 * @throws IndexOutOfBoundsException Thrown if {@code index} is out of bounds.
 	 * @throws NoSuchElementException Thrown if no element exists at ({@code x},{@code y}).
 	 * @throws NullPointerException Thrown if {@code index} is null.
@@ -90,7 +90,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		if (index == null)
 			throw new NullPointerException();
 		
-		if (!VectorInBounds(index))
+		if (!ContainsIndex(index))
 			throw new IndexOutOfBoundsException();
 		
 		/* If the board initialized correctly there should be no null cells,
@@ -106,7 +106,6 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	/**
 	 * {@inheritDoc}
-	 * @author Ray Heil
 	 * @throws IndexOutOfBoundsException Thrown if {@code index} is out of bounds.
 	 * @throws NullPointerException Thrown {@code index} is null or if {@code t} is null.
 	 */
@@ -115,8 +114,12 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		if (t == null || index == null)
 			throw new NullPointerException();
 		
-		if (!VectorInBounds(index))
+		if (!ContainsIndex(index))
 			throw new IndexOutOfBoundsException();
+		
+		// Increase count if we are filling a new cell
+		if (Get(index) == PieceType.NONE)
+			Count++;
 		
 		Board[index.X][index.Y] = t; 
 		return t;
@@ -126,19 +129,18 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 * {@inheritDoc}
 	 * @throws IndexOutOfBoundsException Thrown if {@code index} is out of bounds.
 	 * @throws NullPointerException Thrown if {@code index} is null.
-	 * @author Ray Heil
 	 */
 	@Override
 	public boolean Remove(Vector2i index) {
 		if (index == null)
 			throw new NullPointerException();
 		
-		if (!VectorInBounds(index))
+		if (!ContainsIndex(index))
 			throw new IndexOutOfBoundsException();
 		
 		if (Board[index.X][index.Y] != PieceType.NONE)
 		{
-			Board[index.X][index.Y] = PieceType.NONE; 
+			Set(PieceType.NONE, index);
 			return true;
 		}
 		return false;
@@ -217,64 +219,10 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public Iterable<Vector2i> IndexSet(boolean nonempty) {
-		if (!nonempty)
-			return IndexSet();
-		
-		// This iterator always skips empty cells, since we take care of !nonempty above
-		return new Iterable<Vector2i>()
-		{
-			public Iterator<Vector2i> iterator()
-			{
-				return new Iterator<Vector2i>() 
-				{
-					@Override
-					public boolean hasNext() {	
-						// If nextItem is set, we have already found a next item
-						if (nextItem != null)
-							return true;
-							
-						// If not, try to find the next nonEmpty cell so we can return it
-						// If currentIndex is already at the limit, this will stop running.
-						int currentRow, currentColumn;
-						for (; currentIndex < Width() * Height(); currentIndex++)
-						{
-							currentRow = currentIndex / Width();
-							currentColumn = currentIndex % Width();
-							
-							if (Get(new Vector2i(currentRow, currentColumn)).equals(PieceType.NONE))
-							{
-								nextItem = new Vector2i(currentRow, currentColumn);
-								return true;
-							}		
-						}
-						
-						// If we iterate up to Width() * Height() and find nothing, there are no values left
-						return false;
-					}
-
-					@Override
-					public Vector2i next() {
-						if (!hasNext())
-							throw new NoSuchElementException();
-						
-						Vector2i returnVector = nextItem;
-						nextItem = null;
-						return returnVector;
-					}
-					
-					/**
-					 * The current index of the iterator. (0 <= currentIndex < Width() * Height())
-					 */
-					int currentIndex = 0;
-					
-					/**
-					 * The next item for the iterator to return.
-					 */
-					Vector2i nextItem = null;
-				};
-			}
-		};
-		*/
+		if (nonempty)
+			return LINQ.Where(IndexSet(), t -> IsCellOccupied(t));
+		return IndexSet();
+	}
 
 	@Override
 	public Iterable<PieceType> Neighbors(Vector2i index) {
@@ -308,11 +256,6 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public Iterable<Vector2i> NeighborIndexSet(Vector2i index) {
-		return NeighborIndexSet(index, false);
-	}
-
-	@Override
-	public Iterable<Vector2i> NeighborIndexSet(Vector2i index, boolean nonempty) {
 		return new Iterable<Vector2i>() 
 		{
 			public Iterator<Vector2i> iterator()
@@ -344,11 +287,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 							 *   if nonempty is true,  it can only be next if it is nonempty
 							 */
 							if (ContainsIndex(targetIndex)) {
-								PieceType t = Get(targetIndex);
-								if (!nonempty || !t.equals(PieceType.NONE)) {
-									next = targetIndex;
-									return true;
-								}
+								next = targetIndex;
+								return true;
 							}
 						}
 						
@@ -386,6 +326,13 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	}
 
 	@Override
+	public Iterable<Vector2i> NeighborIndexSet(Vector2i index, boolean nonempty) {
+		if (nonempty)
+			return LINQ.Where(NeighborIndexSet(index), t -> IsCellOccupied(t));
+		return NeighborIndexSet(index);
+	}
+
+	@Override
 	public boolean ContainsIndex(Vector2i index) {
 		return (0 <= index.X && index.X < Height() &&
 				0 <= index.Y && index.Y < Width());
@@ -403,21 +350,12 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	}
 
 	@Override
-	public int Count() {
-		// TODO is this a good way to do this? or maybe a terrible way?
-		// maybe I should be keeping track of the number of items at a certain time so I don't need to iterate the whole board?
-		int count = 0;
-		for (Vector2i index : IndexSet(true))
-		{
-			count++;
-		}
-		return count;
-	}
+	public int Count()
+	{return Count;}
 
 	@Override
-	public int Size() {
-		return Width() * Height();
-	}
+	public int Size() 
+	{return Width() * Height();}
 
 	@Override
 	public void Subscribe(IObserver<TicTacToeEvent> eye) {
@@ -439,57 +377,136 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean IsFinished() {
-		// TODO Auto-generated method stub
-		return false;
+		return (Count() == Size() || WinningSet() != null);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 * <b>DON'T USE THIS!</b> This method is much less efficient than the version that takes a Vector2i as input,
+	 * but it is provided anyway.
+	 */
 	@Override
 	public Iterable<Vector2i> WinningSet() {
-		// TODO Auto-generated method stub
-		// for this one, it might make sense to use Ellie's method
+		for (int i = 0; i < Height(); i++) {
+			for (int j = 0; j < Width(); j++) {
+				Iterable <Vector2i> winning = WinningSet(new Vector2i(i, j));
+				if (winning != null)
+					return winning;
+			}
+		}
 		return null;
 	}
 
+	// TODO TEST
 	@Override
 	public Iterable<Vector2i> WinningSet(Vector2i use_me) {
-		// TODO Auto-generated method stub
-		// for this one, we should branch out from use_me to see if there are winning combos
-		// ooh! we could call WinningSet(use_me) on every new move and that'd sorta work.
+		PieceType t = Get(use_me);
+		if (t.equals(PieceType.NONE))
+		   return null;
+		
+		// Left-right
+		Iterable<Vector2i> horizontal = FindLine(use_me, new Vector2i(0,1));
+		if (LINQ.Count(horizontal) >= WinningLength())
+			return horizontal;
+		
+		// Up-down
+		Iterable<Vector2i> vertical = FindLine(use_me, new Vector2i(1,0));
+		if (LINQ.Count(vertical) >= WinningLength())
+			return vertical;
+		
+		// Diagonal up
+		Iterable<Vector2i> diagonalUp = FindLine(use_me, new Vector2i(1,1));
+		if (LINQ.Count(diagonalUp) >= WinningLength())
+			return diagonalUp;
+
+		// Diagonal down
+		Iterable<Vector2i> diagonalDown = FindLine(use_me, new Vector2i(-1,1));
+		if (LINQ.Count(diagonalDown) >= WinningLength())
+			return diagonalDown;
+
 		return null;
 	}
 	
 	/**
-	 * Check a Vector2i's coordinates to see if it is inside
-	 * the board's boundaries.
-	 * @param index The Vector2i representation of the index to check
-	 * @return {@true} if index is within the bounds of the board.
+	 * Obtain the largest possible line in a direction specified by an offset vector.
+	 * @param center The starting point of the line, will be searched on both sides.
+	 * @param offset The direction to search in.
+	 * @return An iterable containing each cell in the longest line in that direction. Order may not be correct.
 	 */
-	protected boolean VectorInBounds(Vector2i index)
+	protected Iterable<Vector2i> FindLine(Vector2i start, Vector2i offset)
 	{
-		return (index.X >= 0 && index.X < Width() &&
-				index.Y >= 0 && index.Y < Height());
+		PieceType searchType = Get(start);
+		Vector2i furthestBack = start;
+
+		// Calculate the first cell in this line of cells
+		while (ContainsIndex(furthestBack.Subtract(offset)))
+		{
+			if (Get(furthestBack.Subtract(offset)).equals(searchType)) {
+				furthestBack = furthestBack.Subtract(offset);
+			} else {
+				// If the next cell down is NOT of the same type, we have the furthestBack cell
+				break;
+			}
+		}
+		// Need to have a final or effectively final version.
+		final Vector2i startVector = furthestBack;
+		
+		return new Iterable<Vector2i>() 
+		{
+			public Iterator<Vector2i> iterator()
+			{
+				return new Iterator<Vector2i>() 
+				{
+					@Override
+					public boolean hasNext() {
+						return (ContainsIndex(currentIndex) && Get(currentIndex).equals(searchType));
+					}
+
+					@Override
+					public Vector2i next() {
+						if (!hasNext())
+							throw new NoSuchElementException();
+						
+						Vector2i toReturn = currentIndex;
+						currentIndex = currentIndex.Add(offset);
+						return toReturn;
+					}
+					
+					/**
+					 * The index of the current box
+					 */
+					Vector2i currentIndex = startVector;
+				};
+			}
+		};		
 	}
 
 	@Override
 	public Player Victor() {
-		// TODO Auto-generated method stub
-		return null;
+		if (!IsFinished())
+			return Player.NULL;
+		
+		Iterable<Vector2i> winSet = WinningSet();
+		
+		if (winSet == null)
+			return Player.NEITHER;
+		
+		Iterator<Vector2i> winIter = winSet.iterator();
+		PieceType winningPiece = Get(winIter.next());
+		return winningPiece.equals(PieceType.CIRCLE) ? Player.CIRCLE : Player.CROSS;
 	}
 
 	@Override
-	public int Width() {
-		return Width;
-	}
+	public int Width()
+	{return Width;}
 
 	@Override
-	public int Height() {
-		return Height;
-	}
+	public int Height()
+	{return Height;}
 
 	@Override
-	public int WinningLength() {
-		return WinningLength;
-	}
+	public int WinningLength()
+	{return WinningLength;}
 	
 	/**
 	 * This game board.
@@ -510,6 +527,11 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 * The winning length of this board.
 	 */
 	protected int WinningLength;
+	
+	/**
+	 * The number of cells currently filled on this board.
+	 */
+	protected int Count;
 	
 
 }
