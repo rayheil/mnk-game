@@ -2,6 +2,7 @@ package tictactoe.test;
 
 import tictactoe.model.TicTacToeBoard;
 import tictactoe.model.PieceType;
+import tictactoe.model.Player;
 import gamecore.LINQ.LINQ;
 import gamecore.datastructures.vectors.Vector2i;
 
@@ -9,6 +10,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNull;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -57,7 +59,7 @@ public class BoardTests
 	{
 		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 2));
-		assertEquals(winning, null);
+		assertNull(winning);
 	}
 	
 	@Test
@@ -68,7 +70,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(0, 1));
 		b.Set(PieceType.CROSS, new Vector2i(0, 2));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 2));
-		assertNotEquals(winning, null);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -78,7 +80,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
 		b.Set(PieceType.CIRCLE, new Vector2i(0, 1));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 1));
-		assertEquals(winning, null);
+		assertNull(winning);
 	}
 	
 	@Test
@@ -89,7 +91,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(1, 0));
 		b.Set(PieceType.CROSS, new Vector2i(2, 0));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 0));
-		assertNotEquals(winning, null);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -99,7 +101,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
 		b.Set(PieceType.CIRCLE, new Vector2i(1, 0));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 0));
-		assertEquals(winning, null);
+		assertNull(winning);
 	}
 	
 	@Test
@@ -110,7 +112,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(1, 1));
 		b.Set(PieceType.CROSS, new Vector2i(2, 2));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 1));
-		assertNotEquals(winning, null);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -121,7 +123,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(1, 1));
 		b.Set(PieceType.CIRCLE, new Vector2i(2, 1));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 0));
-		assertEquals(winning, null);
+		assertNull(winning);
 	}
 	
 	@Test
@@ -133,7 +135,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(0, 2));
 
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 1));
-		assertNotEquals(winning, null);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -144,7 +146,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(1, 1));
 		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 0));
-		assertEquals(winning, null);
+		assertNull(winning);
 	}
 	
 	@Test
@@ -158,7 +160,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(7,7));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(7, 8));
-		assertEquals(LINQ.Count(winning), 5);
+		assertEquals(5, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -172,7 +174,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(3, 7));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(6, 7));
-		assertEquals(LINQ.Count(winning), 5);
+		assertEquals(5, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -186,7 +188,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(8, 5));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(7, 4));
-		assertEquals(LINQ.Count(winning), 5);
+		assertEquals(5, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -200,7 +202,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(8, 1));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(7, 2));
-		assertEquals(LINQ.Count(winning), 5);
+		assertEquals(5, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -213,7 +215,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(1, 7));
 		
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 7));
-		assertEquals(LINQ.Count(winning), 4);
+		assertEquals(4, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -226,7 +228,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(1, 7));
 		
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(1, 4));
-		assertEquals(LINQ.Count(winning), 3);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -238,7 +240,7 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(2, 6));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(0, 4));
-		assertEquals(LINQ.Count(winning), 3);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
@@ -250,17 +252,17 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(2, 0));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(2, 0));
-		assertEquals(LINQ.Count(winning), 3);
+		assertEquals(3, LINQ.Count(winning));
 	}
 	
 	@Test
 	public void IsFinishedStalemate()
 	{
-		TicTacToeBoard b = new TicTacToeBoard(2,2,2);
+		TicTacToeBoard b = new TicTacToeBoard(2,2,3); // impossible to win
 		b.Set(PieceType.CIRCLE, new Vector2i(0,0));
 		b.Set(PieceType.CIRCLE, new Vector2i(1,1));
 		b.Set(PieceType.CROSS, new Vector2i(1,0));
-		b.Set(PieceType.CROSS, new Vector2i(0,0));
+		b.Set(PieceType.CROSS, new Vector2i(0,1));
 		
 		assertTrue(b.IsFinished());
 	}
@@ -286,5 +288,46 @@ public class BoardTests
 		b.Set(PieceType.CIRCLE, new Vector2i(1, 0));
 
 		assertFalse(b.IsFinished());
+	}
+	
+	@Test
+	public void VictorCross()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CROSS, new Vector2i(0, 0));
+		b.Set(PieceType.CROSS, new Vector2i(1, 0));
+		b.Set(PieceType.CROSS, new Vector2i(2, 0));
+		
+		assertEquals(Player.CROSS, b.Victor());
+	}
+	
+	@Test
+	public void VictorCircle()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(2, 0));
+		
+		assertEquals(Player.CIRCLE, b.Victor());
+	}
+	
+	@Test
+	public void VictorNeither()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(2,2,3); // impossible to win
+		b.Set(PieceType.CIRCLE, new Vector2i(0, 0));
+		b.Set(PieceType.CIRCLE, new Vector2i(1, 1));
+		b.Set(PieceType.CROSS, new Vector2i(0, 1));
+		b.Set(PieceType.CROSS, new Vector2i(1, 0));
+		
+		assertEquals(b.Victor(), Player.NEITHER);
+	}
+	
+	@Test
+	public void VictorNull()
+	{
+		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
+		assertEquals(b.Victor(), Player.NULL);
 	}
 }

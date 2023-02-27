@@ -359,7 +359,9 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public void Subscribe(IObserver<TicTacToeEvent> eye) {
-		// TODO Auto-generated method stub
+		// TODO what does it mean to be an observer of this grid?
+		// I really do not know and the documentation helpsn't
+		
 		
 	}
 
@@ -371,8 +373,15 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public ITicTacToeBoard Clone() {
-		// TODO Auto-generated method stub
-		return null;
+		TicTacToeBoard clonedBoard = new TicTacToeBoard(Width(), Height(), WinningLength());
+		for (int i = 0; i < Height(); i++) {
+			for (int j = 0; j < Width; j++) {
+				Vector2i pos = new Vector2i(i, j);
+				PieceType t = this.Get(pos);
+				clonedBoard.Set(t, pos);
+			}
+		}
+		return clonedBoard;
 	}
 
 	@Override
@@ -397,7 +406,6 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		return null;
 	}
 
-	// TODO TEST
 	@Override
 	public Iterable<Vector2i> WinningSet(Vector2i use_me) {
 		PieceType t = Get(use_me);
