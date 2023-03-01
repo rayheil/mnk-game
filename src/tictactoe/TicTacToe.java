@@ -7,6 +7,8 @@ import gamecore.input.InputManager;
 import gamecore.input.InputMap;
 import tictactoe.controller.ITicTacToeController;
 import tictactoe.controller.TicTacToeController;
+import tictactoe.model.ITicTacToeBoard; // TODO should I really import these here? I feel iffy about it
+import tictactoe.model.TicTacToeBoard; // TODO this one too
 
 /**
  * Plays tic tac toe.
@@ -15,7 +17,7 @@ import tictactoe.controller.TicTacToeController;
 public class TicTacToe extends GameEngine
 {
 	/**
-	 * Creates a new tic tac toe game.
+	 * Creates a new tic tac toe game with a width, height, and win_len.
 	 * @param width The width of the board. This value must be positive.
 	 * @param height The height of the board. This value must be positive.
 	 * @param win_len The required winning length of the board. This must be positive and at most {@code width} and at most {@code height}.
@@ -23,15 +25,39 @@ public class TicTacToe extends GameEngine
 	 */
 	public TicTacToe(int width, int height, int win_len)
 	{
-		// Use the GameEngine to declare a new game
+		this(width, height, win_len, false, 0, false, 0);
+	}
+	
+	/**
+	 * Creates a new tic tac toe game with a width, height, and win_len, and allows one or both players
+	 * to be controlled by an AI of specified difficulty.
+	 * @param width The width of the board. This value must be positive.
+	 * @param height The height of the board. This value must be positive.
+	 * @param win_len The required winning length of the board. This must be positive and at most {@code width} and at most {@code height}.
+	 * @param player1_human Whether the first player is controlled by a human. If false, player 1 will be an AI with difficulty determined by the next patameter.
+	 * @param ai1_difficulty If player 1 is not human, the difficulty of the AI controlling them.
+	 * @param player2_human Whether the first player is controlled by a human. If false, player 2 will be an AI with difficulty determined by the next patameter.
+	 * @param ai2_difficulty If player 2 is not human, the difficulty of the AI controlling them.
+	 * @throws IllegalArgumentException Thrown if {@code width}, {@code height}, or {@code win_len} is nonpositive or if {@code win_len} is greater than either {@code width} and {@code height}.
+	 */
+	public TicTacToe(int width, int height, int win_len, boolean player1_human, int ai1_difficulty, boolean player2_human, int ai2_difficulty)
+	{
+		// Tell GameEngine to initialize a game window with the right size
 		super("CSC 207 Tic Tac Toe",null,168 * width + 16,168 * height + 39);
 		
-		// TODO figure out how to assign these from the command line. maybe some simple flags,
-		// -m, -n, -k (such as ./BootStrap -m 3 -n 3 -k 3 for a normal game)
+		if (width < 1 || height < 1 || win_len < 1)
+			throw new IllegalArgumentException("Nonpositive arguments for width, height, or win_len are illegal.");
+		if (win_len > width || win_len > height)
+			throw new IllegalArgumentException("It is illegal for win_len to be greater than either width or height.");
+		
 		Width = width;
 		Height = height;
 		WinningLength = win_len;
-				
+		Player1Human = player1_human;
+		Player1AIDifficulty = ai1_difficulty;
+		Player2Human = player2_human;
+		Player2AIDifficulty = ai2_difficulty;
+		
 		return;
 	}
 	
@@ -79,9 +105,12 @@ public class TicTacToe extends GameEngine
 		Input.AddInput("Select",() -> Bindings.GetBinding("Select").DigitalEvaluation.Evaluate(),true);
 		
 		// Construct the controller
-		Controller = new TicTacToeController(Width,Height,WinningLength,true,8,false,8);
+		Controller = new TicTacToeController(Width,Height,WinningLength,Player1Human, Player1AIDifficulty, Player2Human, Player2AIDifficulty);
 		AddComponent(Controller);
 		
+		// Construct the board
+		Board = new TicTacToeBoard(Width, Height, WinningLength);
+						
 		return;
 	}
 	
@@ -113,6 +142,11 @@ public class TicTacToe extends GameEngine
 	protected ITicTacToeController Controller;
 	
 	/**
+	 * The Tic Tac Toe board.
+	 */
+	protected ITicTacToeBoard Board;
+	
+	/**
 	 * The input manager for the game.
 	 * This is registered as a service.
 	 */
@@ -132,4 +166,24 @@ public class TicTacToe extends GameEngine
 	 * The winning length of the board.
 	 */
 	protected int WinningLength;
+	
+	/**
+	 * Whether player 1 is human.
+	 */
+	protected boolean Player1Human;
+	
+	/**
+	 * AI player 1 difficulty.
+	 */
+	protected int Player1AIDifficulty;
+	
+	/**
+	 * Whether player 2 is human.
+	 */
+	protected boolean Player2Human;
+	
+	/**
+	 * AI player 2 difficulty.
+	 */
+	protected int Player2AIDifficulty;
 }
