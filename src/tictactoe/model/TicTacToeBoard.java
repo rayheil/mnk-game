@@ -15,56 +15,6 @@ import gamecore.observe.IObserver;
  * 
  */
 public class TicTacToeBoard implements ITicTacToeBoard {
-
-	/* TODO REMOVE ME */
-	public static void main(String[] args)
-	{
-		TicTacToeBoard b = new TicTacToeBoard(3,5,3);
-		
-		b.Set(PieceType.CROSS, new Vector2i(1, 1));
-		b.Set(PieceType.CIRCLE, new Vector2i(0, 1));
-		b.Set(PieceType.CROSS, new Vector2i(2, 1));
-		b.Set(PieceType.CIRCLE, new Vector2i(0, 2));
-		b.Set(PieceType.CROSS, new Vector2i(3, 1));
-		
-		b.PrintConsole();
-		
-		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(2, 1));
-		if (winning == null)
-			return;
-		
-		Iterator<Vector2i> iter = winning.iterator(); 
-		while (iter.hasNext())
-			System.out.println(iter.next() + " in winning set");
-	}
-	
-	/* TODO REMOVE ME */
-	public void PrintConsole()
-	{
-		for (int i = 0; i < Height(); i++) {
-			for (int j = 0; j < Width(); j++) {
-				PieceType p = Get(new Vector2i(i, j));
-				char printMe;
-				switch (p)
-				{
-				case CIRCLE:
-					printMe = 'O';
-					break;
-				case CROSS:
-					printMe = 'X';
-					break;
-				case NONE:
-					printMe = '-';
-					break;
-				default:
-					printMe = '?';
-					break;
-				}
-				System.out.print(printMe + " ");
-			}
-			System.out.print("\n");
-		}
-	}
 	
 	public TicTacToeBoard(int width, int height, int winningLength)
 	{
