@@ -303,7 +303,7 @@ public class MultiImageComponent extends ImageComponent
 	{return Images.size();}
 	
 	/**
-	 * Removes all iamges from the component.
+	 * Removes all images from the component.
 	 */
 	public void ClearImages()
 	{

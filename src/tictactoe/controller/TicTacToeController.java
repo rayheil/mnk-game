@@ -1,10 +1,15 @@
 package tictactoe.controller;
 
+import java.io.File;
+
 import gamecore.GameEngine;
+import gamecore.datastructures.vectors.Vector2i;
+import gamecore.gui.gamecomponents.MultiImageComponent;
 import gamecore.input.InputManager;
 import tictactoe.AI.ITicTacToeAI;
 import tictactoe.AI.TicTacToeAI;
 import tictactoe.model.ITicTacToeBoard;
+import tictactoe.model.PieceType;
 import tictactoe.model.Player;
 import tictactoe.model.TicTacToeBoard;
 import tictactoe.model.TicTacToeEvent;
@@ -69,7 +74,8 @@ public class TicTacToeController implements ITicTacToeController
 		View = new TicTacToeView(Width,Height);
 		
 		// Initialize the game state
-		
+		// TODO OK BUT HOW
+		// TODO here is where we need to initialize stuff
 		
 		Initialized = true;
 		return;
@@ -116,9 +122,24 @@ public class TicTacToeController implements ITicTacToeController
 	
 	public void OnNext(TicTacToeEvent event)
 	{
-		
-		
-		return;
+		switch (event.Type) {
+		case CLEAR:
+			View.Clear();
+			break;
+		case GAME_OVER:
+			// TODO hers does this SLOWLY though.
+			for (Vector2i pos : event.WinningSet)
+				View.MakeGolden(pos);
+			break;
+		case PIECE_PLACEMENT:
+			View.PlacePiece(event.PiecePosition, event.PlacedPieceType);
+			break;
+		case PIECE_REMOVAL:
+			View.PlacePiece(event.RemovedPosition, PieceType.NONE);
+			break;
+		default:
+			break;
+		}
 	}
 	
 	public void OnError(Exception e)
@@ -149,12 +170,12 @@ public class TicTacToeController implements ITicTacToeController
 	/**
 	 * The Tic Tac Toe board.
 	 */
-	protected ITicTacToeBoard Model;
+	public ITicTacToeBoard Model;
 	
 	/**
 	 * The Tic Tac Toe view.
 	 */
-	protected ITicTacToeView View;
+	public ITicTacToeView View;
 	
 	/**
 	 * The input manager for the game.

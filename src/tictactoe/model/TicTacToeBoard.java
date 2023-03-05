@@ -1,6 +1,7 @@
 package tictactoe.model;
 
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 import gamecore.LINQ.LINQ;
@@ -23,6 +24,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		this.Height = height;
 		this.WinningLength = winningLength;
 		this.Count = 0;
+		this.Observers = new LinkedList<IObserver<TicTacToeEvent>>();
+		this.Winner = Player.NULL;
 		
 		for (int i = 0; i < Height(); i++)
 			for (int j = 0; j < Width(); j++)
@@ -71,7 +74,12 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		if (Get(index) == PieceType.NONE)
 			Count++;
 		
-		Board[index.X][index.Y] = t; 
+		Board[index.X][index.Y] = t;
+		
+		// Notify all observers of PIECE_PLACEMENT
+		for (IObserver<TicTacToeEvent> eye : Observers)
+			eye.OnNext(new TicTacToeEvent(index, t));
+		
 		return t;
 	}
 
@@ -88,12 +96,18 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		if (!ContainsIndex(index))
 			throw new IndexOutOfBoundsException();
 		
-		if (Board[index.X][index.Y] != PieceType.NONE)
-		{
-			Set(PieceType.NONE, index);
-			return true;
-		}
-		return false;
+		// If the position was already null, we don't remove anything
+		if (Board[index.X][index.Y] == PieceType.NONE)
+			return false;
+	
+		Board[index.X][index.Y] = PieceType.NONE;
+		Count--;
+		
+		// Notify all observers of PIECE_REMOVAL
+		for (IObserver<TicTacToeEvent> eye : Observers)
+			eye.OnNext(new TicTacToeEvent(index));
+		
+		return true;
 	}
 
 	@Override
@@ -290,12 +304,14 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean Clear() {
-		Board = new PieceType[Height()][Width()];
-		
+		// Initialize the board again.
 		for (int i = 0; i < Height(); i++)
 			for (int j = 0; j < Width(); j++)
 				Board[i][j] = PieceType.NONE;
 		
+		// Notify all observers of CLEAR
+		for (IObserver<TicTacToeEvent> eye : Observers)
+			eye.OnNext(new TicTacToeEvent());
 		return true;
 	}
 
@@ -309,16 +325,12 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public void Subscribe(IObserver<TicTacToeEvent> eye) {
-		// TODO what does it mean to be an observer of this grid?
-		// I really do not know and the documentation helpsn't
-		
-		
+		Observers.add(eye);
 	}
 
 	@Override
 	public void Unsubscribe(IObserver<TicTacToeEvent> eye) {
-		// TODO Auto-generated method stub
-		
+		Observers.remove(eye);		
 	}
 
 	@Override
@@ -336,7 +348,16 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean IsFinished() {
-		return (Count() == Size() || WinningSet() != null);
+		Iterable<Vector2i> win_set = WinningSet();
+		if (Count() == Size() || win_set != null) {
+			for (IObserver<TicTacToeEvent> eye : Observers)
+				// TODO this calls winningSet so many times, that is a pain so so so much.
+				// I am trying to introduce the "Winner" variable to see if that helps, but I'm not sure it will
+				// gotta go to do some math now .-. 
+				eye.OnNext(new TicTacToeEvent(Victor(), win_set));
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -348,9 +369,9 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	public Iterable<Vector2i> WinningSet() {
 		for (int i = 0; i < Height(); i++) {
 			for (int j = 0; j < Width(); j++) {
-				Iterable <Vector2i> winning = WinningSet(new Vector2i(i, j));
-				if (winning != null)
-					return winning;
+				Iterable <Vector2i> win_set = WinningSet(new Vector2i(i, j));
+				if (win_set != null)
+					return win_set;
 			}
 		}
 		return null;
@@ -358,31 +379,70 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public Iterable<Vector2i> WinningSet(Vector2i use_me) {
-		PieceType t = Get(use_me);
-		if (t.equals(PieceType.NONE))
+		if (use_me == null)
+			throw new NullPointerException();
+		
+		if (Get(use_me).equals(PieceType.NONE))
 		   return null;
 		
-		// Left-right
-		Iterable<Vector2i> horizontal = FindLine(use_me, new Vector2i(0,1));
-		if (LINQ.Count(horizontal) >= WinningLength())
-			return horizontal;
+		// Horizontal
+		Iterable<Vector2i> currentLine = LongestLine(use_me, new Vector2i(0,1));
+		if (LINQ.Count(currentLine) >= WinningLength()) {
+			for (IObserver<TicTacToeEvent> eye : Observers)
+				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			return currentLine;
+		}
 		
-		// Up-down
-		Iterable<Vector2i> vertical = FindLine(use_me, new Vector2i(1,0));
-		if (LINQ.Count(vertical) >= WinningLength())
-			return vertical;
-		
-		// Diagonal up
-		Iterable<Vector2i> diagonalUp = FindLine(use_me, new Vector2i(1,1));
-		if (LINQ.Count(diagonalUp) >= WinningLength())
-			return diagonalUp;
+		// Vertical
+		currentLine = LongestLine(use_me, new Vector2i(1,0));
+		if (LINQ.Count(currentLine) >= WinningLength()) {
+			for (IObserver<TicTacToeEvent> eye : Observers)
+				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			return currentLine;
+		}
 
 		// Diagonal down
-		Iterable<Vector2i> diagonalDown = FindLine(use_me, new Vector2i(-1,1));
-		if (LINQ.Count(diagonalDown) >= WinningLength())
-			return diagonalDown;
+		currentLine = LongestLine(use_me, new Vector2i(1,1));
+		if (LINQ.Count(currentLine) >= WinningLength()) {
+			for (IObserver<TicTacToeEvent> eye : Observers)
+				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			return currentLine;
+		}
+		
+		// Diagonal up
+		currentLine = LongestLine(use_me, new Vector2i(-1,1));
+		if (LINQ.Count(currentLine) >= WinningLength()) {
+			for (IObserver<TicTacToeEvent> eye : Observers)
+				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			return currentLine;
+		}
 
 		return null;
+	}
+	
+	/**
+	 * Get the player who has played at a certain index, inferring from PieceType.
+	 * @param index The index of the position to check.
+	 * @return The player whose piece has been played.
+	 */
+	protected Player GetPlayer(Vector2i index)
+	{
+		Player returnType = null;
+		switch (Get(index))
+		{
+		case CIRCLE:
+			returnType = Player.CIRCLE;
+			break;
+		case CROSS:
+			returnType = Player.CROSS;
+			break;
+		case NONE:
+			returnType = Player.NULL;
+			break;
+		default:
+			throw new NullPointerException();
+		}
+		return returnType;
 	}
 	
 	/**
@@ -391,7 +451,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 * @param offset The direction to search in.
 	 * @return An iterable containing each cell in the longest line in that direction. Order may not be correct.
 	 */
-	protected Iterable<Vector2i> FindLine(Vector2i start, Vector2i offset)
+	protected Iterable<Vector2i> LongestLine(Vector2i start, Vector2i offset)
 	{
 		PieceType searchType = Get(start);
 		Vector2i furthestBack = start;
@@ -491,5 +551,14 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 */
 	protected int Count;
 	
+	/**
+	 * The player that has won, if one exists.
+	 */
+	protected Player Winner;
+	
+	/**
+	 * A list of every eye observing this board.
+	 */
+	protected LinkedList<IObserver<TicTacToeEvent>> Observers;
 
 }

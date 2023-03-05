@@ -1,14 +1,14 @@
 package tictactoe;
 
 import java.awt.event.KeyEvent;
+import java.io.File;
 
 import gamecore.GameEngine;
+import gamecore.gui.gamecomponents.MultiImageComponent;
 import gamecore.input.InputManager;
 import gamecore.input.InputMap;
 import tictactoe.controller.ITicTacToeController;
 import tictactoe.controller.TicTacToeController;
-import tictactoe.model.ITicTacToeBoard; // TODO should I really import these here? I feel iffy about it
-import tictactoe.model.TicTacToeBoard; // TODO this one too
 
 /**
  * Plays tic tac toe.
@@ -61,7 +61,8 @@ public class TicTacToe extends GameEngine
 		return;
 	}
 	
-	@Override protected void Initialize()
+	@Override
+	protected void Initialize()
 	{
 		// Initialize input data
 		Input = new InputManager();
@@ -108,9 +109,18 @@ public class TicTacToe extends GameEngine
 		Controller = new TicTacToeController(Width,Height,WinningLength,Player1Human, Player1AIDifficulty, Player2Human, Player2AIDifficulty);
 		AddComponent(Controller);
 		
-		// Construct the board
-		Board = new TicTacToeBoard(Width, Height, WinningLength);
-						
+		// TODO this stuff shows an image. I think a very important part is AddComponent.
+		// So how can I get the view to do that same thing? Controller has no addcomponent, and I seem to need to add the actual image.
+		// LIKE HOW? CAN I GO UP?
+		MultiImageComponent TestThing = new MultiImageComponent();
+		TestThing.AddImage(new File("assets/images/Circle.png"));
+		TestThing.AddImage(new File("assets/images/Cross.png"));
+		TestThing.AddImage(new File("assets/images/Golden Circle.png"));
+		TestThing.AddImage(new File("assets/images/Golden Cross.png"));
+	    AddComponent(TestThing);
+		TestThing.Translate(30, 30);
+		TestThing.SetSelectedImage(0);
+								
 		return;
 	}
 	
@@ -118,7 +128,10 @@ public class TicTacToe extends GameEngine
 	{return;}
 	
 	@Override protected void Update(long delta)
-	{return;}
+	{
+		// TODO in hers, this is where all the input logic goes. HOW DO I HANDLE IT???
+		return;
+	}
 	
 	@Override protected void LateUpdate(long delta)
 	{
@@ -140,11 +153,6 @@ public class TicTacToe extends GameEngine
 	 * The Tic Tac Toe controller.
 	 */
 	protected ITicTacToeController Controller;
-	
-	/**
-	 * The Tic Tac Toe board.
-	 */
-	protected ITicTacToeBoard Board;
 	
 	/**
 	 * The input manager for the game.

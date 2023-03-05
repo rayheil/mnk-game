@@ -321,13 +321,13 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(0, 1));
 		b.Set(PieceType.CROSS, new Vector2i(1, 0));
 		
-		assertEquals(b.Victor(), Player.NEITHER);
+		assertEquals(Player.NEITHER, b.Victor());
 	}
 	
 	@Test
 	public void VictorNull()
 	{
 		TicTacToeBoard b = new TicTacToeBoard(3,3,3);
-		assertEquals(b.Victor(), Player.NULL);
+		assertEquals(Player.NULL, b.Victor());
 	}
 }
