@@ -2,6 +2,7 @@ package tictactoe.view;
 
 import java.io.File;
 
+import gamecore.GameEngine;
 import gamecore.datastructures.vectors.Vector2i;
 import gamecore.gui.gamecomponents.MultiImageComponent;
 
@@ -15,29 +16,53 @@ public class TicTacToeView implements ITicTacToeView {
 		Height = height;
 		Disposed = false;
 		CursorPosition = new Vector2i(0, 0);
-		Pieces = new MultiImageComponent[Height][Width];
+		Pieces = new MultiImageComponent[Height][Width];		
+		Grid = new MultiImageComponent[Height][Width];
+
 		
-		MultiImageComponent temp = new MultiImageComponent();
-		temp.AddImage(new File("assets/images/Cross.png"));
-		System.out.println("yep we initialized it but why does it not show.");
-		temp.SetSelectedImage(0);
-		temp.Show();
+		/*
+		MultiImageComponent TestThing = new MultiImageComponent();
+		TestThing.AddImage(new File("assets/images/Circle.png"));
+		TestThing.AddImage(new File("assets/images/Cross.png"));
+		TestThing.AddImage(new File("assets/images/Golden Circle.png"));
+		TestThing.AddImage(new File("assets/images/Golden Cross.png"));
+	    //AddComponent(TestThing);
+		GameEngine.Game().AddComponent(TestThing); // HOLY SHIT TODO TODO TODO YESSSSs
+		TestThing.Translate(30, 30);
+		TestThing.SetSelectedImage(0);
+		*/
 		
-		/*for (int x = 0; x < Height; x++) {
-			for (int y = 0; y < Width; y++) {
-				MultiImageComponent current = Pieces[x][y];
-				current = new MultiImageComponent();
+		/* Place pieces and cells around the board.
+		 * The cells will immediately be visible, but
+		 * the pieces will be hidden.
+		 */
+		for (int y = 0; y < Height; y++) {
+			for (int x = 0; x < Width; x++) {
+				// Initialize the correct 2d array cell with a MultiImageComponent and 
+				// tell the game engine to recognize it.
+				MultiImageComponent piece = Pieces[y][x];
+				MultiImageComponent cell = Grid[y][x];
+				piece = new MultiImageComponent();
+				cell = new MultiImageComponent();
+				GameEngine.Game().AddComponent(piece);
+				GameEngine.Game().AddComponent(cell);
 				
-				// Add all piece images, index 0 thru 3 IDK HELPPPP
-				current.AddImage(new File("assets/images/Circle.png"));
-				current.AddImage(new File("assets/images/Cross.png"));
-				current.AddImage(new File("assets/images/Golden Circle.png"));
-				current.AddImage(new File("assets/images/Golden Cross.png"));
-				current.Translate(30.0, 30.0);
-				current.Show();
-				current.SetSelectedImage(0);			
+				// Add the relevant images to piece and place it in the right location
+				piece.Translate(168 * x + 8, 168 * y + 19.5);
+				piece.AddImage(new File("assets/images/Circle.png"));
+				piece.AddImage(new File("assets/images/Cross.png"));
+				piece.AddImage(new File("assets/images/Golden Circle.png"));
+				piece.AddImage(new File("assets/images/Golden Cross.png"));
+				piece.Hide(); // hidden by default, but I want to make the call explicit
+				
+				// The grid cell only requires one image, and is shown off the bat.
+				cell.Translate(168 * x + 8, 168 * y + 19.5);
+				cell.AddImage(new File("assets/images/GridCell.png"));
+				cell.SetSelectedImage(0);
+				
+				
 			}
-		}*/
+		}
 	}
 	
 	@Override
@@ -148,5 +173,10 @@ public class TicTacToeView implements ITicTacToeView {
 	 * Height by width array containing MultiImageComponents to display pieces
 	 */
 	protected MultiImageComponent[][] Pieces;
+	
+	/**
+	 * Height by width array containing MultiImageComponents to display the grid
+	 */
+	protected MultiImageComponent[][] Grid;
 
 }
