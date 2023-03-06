@@ -27,9 +27,10 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		this.Observers = new LinkedList<IObserver<TicTacToeEvent>>();
 		this.Winner = Player.NULL;
 		
-		for (int i = 0; i < Height(); i++)
-			for (int j = 0; j < Width(); j++)
-				Board[i][j] = PieceType.NONE;
+		// Fill the board with PieceType.NONE
+		for (int x = 0; x < Width(); x++)
+			for (int y = 0; y < Height(); y++)
+				Board[y][x] = PieceType.NONE;
 	}
 	
 	/**
@@ -49,7 +50,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		/* If the board initialized correctly there should be no null cells,
 		 * but this behavior is specified in the doc so I implemented it to be safe
 		 */
-		PieceType returnType = Board[index.X][index.Y];
+		PieceType returnType = Board[index.Y][index.X];
 		if (returnType == null)
 			throw new NoSuchElementException();
 		
@@ -74,12 +75,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		if (Get(index) == PieceType.NONE)
 			Count++;
 		
-		Board[index.X][index.Y] = t;
-		
-		// Notify all observers of PIECE_PLACEMENT
-		for (IObserver<TicTacToeEvent> eye : Observers)
-			eye.OnNext(new TicTacToeEvent(index, t));
-		
+		Board[index.Y][index.X] = t;		
+		NotifyObservers(new TicTacToeEvent(index, t));
 		return t;
 	}
 
@@ -97,15 +94,14 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 			throw new IndexOutOfBoundsException();
 		
 		// If the position was already null, we don't remove anything
-		if (Board[index.X][index.Y] == PieceType.NONE)
+		if (Board[index.Y][index.X] == PieceType.NONE)
 			return false;
 	
-		Board[index.X][index.Y] = PieceType.NONE;
+		Board[index.Y][index.X] = PieceType.NONE;
 		Count--;
 		
 		// Notify all observers of PIECE_REMOVAL
-		for (IObserver<TicTacToeEvent> eye : Observers)
-			eye.OnNext(new TicTacToeEvent(index));
+		NotifyObservers(new TicTacToeEvent(index));
 		
 		return true;
 	}
@@ -298,20 +294,19 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean ContainsIndex(Vector2i index) {
-		return (0 <= index.X && index.X < Height() &&
-				0 <= index.Y && index.Y < Width());
+		return (0 <= index.X && index.X < Width() &&
+				0 <= index.Y && index.Y < Height());
 	}
 
 	@Override
 	public boolean Clear() {
 		// Initialize the board again.
-		for (int i = 0; i < Height(); i++)
-			for (int j = 0; j < Width(); j++)
-				Board[i][j] = PieceType.NONE;
+		for (int y = 0; y < Height(); y++)
+			for (int x = 0; x < Width(); x++)
+				Board[y][x] = PieceType.NONE;
 		
 		// Notify all observers of CLEAR
-		for (IObserver<TicTacToeEvent> eye : Observers)
-			eye.OnNext(new TicTacToeEvent());
+		NotifyObservers(new TicTacToeEvent());
 		return true;
 	}
 
@@ -336,9 +331,9 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	@Override
 	public ITicTacToeBoard Clone() {
 		TicTacToeBoard clonedBoard = new TicTacToeBoard(Width(), Height(), WinningLength());
-		for (int i = 0; i < Height(); i++) {
-			for (int j = 0; j < Width; j++) {
-				Vector2i pos = new Vector2i(i, j);
+		for (int y = 0; y < Height(); y++) {
+			for (int x = 0; x < Width; x++) {
+				Vector2i pos = new Vector2i(x, y);
 				PieceType t = this.Get(pos);
 				clonedBoard.Set(t, pos);
 			}
@@ -348,16 +343,22 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean IsFinished() {
+		if (!Winner.equals(Player.NULL)) {
+			NotifyObservers(new TicTacToeEvent(Winner, WinningSet()));
+			return true;	
+		}
+		
 		Iterable<Vector2i> win_set = WinningSet();
 		if (Count() == Size() || win_set != null) {
-			for (IObserver<TicTacToeEvent> eye : Observers)
-				// TODO this calls winningSet so many times, that is a pain so so so much.
-				// I am trying to introduce the "Winner" variable to see if that helps, but I'm not sure it will
-				// gotta go to do some math now .-. 
-				eye.OnNext(new TicTacToeEvent(Victor(), win_set));
+			NotifyObservers(new TicTacToeEvent(Victor(), win_set));
 			return true;
 		}
 		return false;
+	}
+
+	private void NotifyObservers(TicTacToeEvent event) {
+		for (IObserver<TicTacToeEvent> eye : Observers)
+			eye.OnNext(event);
 	}
 
 	/**
@@ -388,32 +389,28 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		// Horizontal
 		Iterable<Vector2i> currentLine = LongestLine(use_me, new Vector2i(0,1));
 		if (LINQ.Count(currentLine) >= WinningLength()) {
-			for (IObserver<TicTacToeEvent> eye : Observers)
-				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
 			return currentLine;
 		}
 		
 		// Vertical
 		currentLine = LongestLine(use_me, new Vector2i(1,0));
 		if (LINQ.Count(currentLine) >= WinningLength()) {
-			for (IObserver<TicTacToeEvent> eye : Observers)
-				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
 			return currentLine;
 		}
 
 		// Diagonal down
 		currentLine = LongestLine(use_me, new Vector2i(1,1));
 		if (LINQ.Count(currentLine) >= WinningLength()) {
-			for (IObserver<TicTacToeEvent> eye : Observers)
-				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
 			return currentLine;
 		}
 		
 		// Diagonal up
 		currentLine = LongestLine(use_me, new Vector2i(-1,1));
 		if (LINQ.Count(currentLine) >= WinningLength()) {
-			for (IObserver<TicTacToeEvent> eye : Observers)
-				eye.OnNext(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
+			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
 			return currentLine;
 		}
 

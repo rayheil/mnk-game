@@ -18,19 +18,6 @@ public class TicTacToeView implements ITicTacToeView {
 		CursorPosition = new Vector2i(0, 0);
 		Pieces = new MultiImageComponent[Height][Width];		
 		Grid = new MultiImageComponent[Height][Width];
-
-		
-		/*
-		MultiImageComponent TestThing = new MultiImageComponent();
-		TestThing.AddImage(new File("assets/images/Circle.png"));
-		TestThing.AddImage(new File("assets/images/Cross.png"));
-		TestThing.AddImage(new File("assets/images/Golden Circle.png"));
-		TestThing.AddImage(new File("assets/images/Golden Cross.png"));
-	    //AddComponent(TestThing);
-		GameEngine.Game().AddComponent(TestThing); // HOLY SHIT TODO TODO TODO YESSSSs
-		TestThing.Translate(30, 30);
-		TestThing.SetSelectedImage(0);
-		*/
 		
 		/* Place pieces and cells around the board.
 		 * The cells will immediately be visible, but
@@ -38,52 +25,55 @@ public class TicTacToeView implements ITicTacToeView {
 		 */
 		for (int y = 0; y < Height; y++) {
 			for (int x = 0; x < Width; x++) {
-				// Initialize the correct 2d array cell with a MultiImageComponent and 
-				// tell the game engine to recognize it.
-				MultiImageComponent piece = Pieces[y][x];
-				MultiImageComponent cell = Grid[y][x];
-				piece = new MultiImageComponent();
-				cell = new MultiImageComponent();
-				GameEngine.Game().AddComponent(piece);
-				GameEngine.Game().AddComponent(cell);
+				// Initialize the correct array index with a MultiImageComponent and 
+				// tell the game engine to track it
+				Pieces[y][x] = new MultiImageComponent();
+				Grid[y][x] = new MultiImageComponent();
+				GameEngine.Game().AddComponent(Pieces[y][x]);
+				GameEngine.Game().AddComponent(Grid[y][x]);
 				
-				// Add the relevant images to piece and place it in the right location
-				piece.Translate(168 * x + 8, 168 * y + 19.5);
-				piece.AddImage(new File("assets/images/Circle.png"));
-				piece.AddImage(new File("assets/images/Cross.png"));
-				piece.AddImage(new File("assets/images/Golden Circle.png"));
-				piece.AddImage(new File("assets/images/Golden Cross.png"));
-				piece.Hide(); // hidden by default, but I want to make the call explicit
+				// Add the relevant images to Pieces[y][x] and place it in the right location
+				Pieces[y][x].Translate(168 * x + 10, 168 * y + 22.5);
+				Pieces[y][x].AddImage(new File("assets/images/Circle.png"));
+				Pieces[y][x].AddImage(new File("assets/images/Cross.png"));
+				Pieces[y][x].AddImage(new File("assets/images/Golden Circle.png"));
+				Pieces[y][x].AddImage(new File("assets/images/Golden Cross.png"));
 				
-				// The grid cell only requires one image, and is shown off the bat.
-				cell.Translate(168 * x + 8, 168 * y + 19.5);
-				cell.AddImage(new File("assets/images/GridCell.png"));
-				cell.SetSelectedImage(0);
-				
-				
+				// The grid cell only requires one image, and is shown right away
+				Grid[y][x].Translate(168 * x + 8, 168 * y + 19.5);
+				Grid[y][x].AddImage(new File("assets/images/GridCell.png"));
+				Grid[y][x].SetSelectedImage(0);	
 			}
 		}
+		
+		PlacePiece(new Vector2i(1, 1), PieceType.CROSS);
+		PlacePiece(new Vector2i(1, 2), PieceType.CIRCLE);
+		PlacePiece(new Vector2i(3, 1), PieceType.CROSS);
+
+
 	}
 	
 	@Override
 	public void PlacePiece(Vector2i pos, PieceType piece) {
-		if (Disposed) // TODO is this what you do if you're disposed?
+		if (Disposed)
 			return;
 		
 		if (pos == null || piece == null)
 			throw new NullPointerException();
 		
 		// TODO Bounds checking on pos is probably needed, but fuck do I not want to
+		if (pos.X < 0 || pos.X > Width() || pos.Y < 0 || pos.Y > Height())
+			throw new IndexOutOfBoundsException();
 		
 		switch (piece) {
 		case CIRCLE:
-			Pieces[pos.X][pos.Y].SetSelectedImage(0);
+			Pieces[pos.Y][pos.X].SetSelectedImage(0);
 			break;
 		case CROSS:
-			Pieces[pos.X][pos.Y].SetSelectedImage(1);
+			Pieces[pos.Y][pos.X].SetSelectedImage(1);
 			break;
 		case NONE:
-			Pieces[pos.X][pos.Y].Hide();
+			Pieces[pos.Y][pos.X].Hide();
 			break;
 		default:
 			break;
