@@ -72,11 +72,15 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 			throw new IndexOutOfBoundsException();
 		
 		// Increase count if we are filling a new cell
-		if (Get(index) == PieceType.NONE)
+		if (Get(index) == PieceType.NONE) {
 			Count++;
+			if (Count() >= Size())
+				Victor = Player.NEITHER;
+		}
 		
-		Board[index.Y][index.X] = t;		
+		Board[index.Y][index.X] = t;	
 		NotifyObservers(new TicTacToeEvent(index, t));
+		WinningSet(index);
 		return t;
 	}
 
@@ -343,25 +347,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean IsFinished() {
-		return !Victor().equals(Player.NULL);
-		
-		/*
-		// If winner is set properly, this function will run super quickly.
-		System.out.println("IsFinished: Victor is " + Victor);
-		if (!Victor.equals(Player.NULL)) {
-			NotifyObservers(new TicTacToeEvent(Victor, WinningSet()));
-			return true;
-		}
-		
-		// If not, we need to find the winning set which can take forever.
-		// TODO can I omit this code? Will everything still work?
-		Iterable<Vector2i> win_set = WinningSet();
-		if (Count() == Size() || win_set != null) {
-			NotifyObservers(new TicTacToeEvent(Victor, win_set)); // in finding win_set, we will set Winner
-			return true;
-		}
-		return false;
-		*/
+		return (Count() >= Height() * Width() || !Victor().equals(Player.NULL));
 	}
 
 	protected void NotifyObservers(TicTacToeEvent event) {
@@ -399,7 +385,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		Iterable<Vector2i> line;
 		
 		// Horizontal
-		direction = new Vector2i(0, 1);
+		direction = new Vector2i(1, 0);
 		line = LongestLine(use_me, direction);
 		if (LINQ.Count(line) >= WinningLength()) {
 			Victor = GetPlayer(line.iterator().next());
@@ -408,7 +394,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		}
 		
 		// Vertical
-		direction = new Vector2i(1, 0);
+		direction = new Vector2i(0, 1);
 		line = LongestLine(use_me, direction);
 		if (LINQ.Count(line) >= WinningLength()) {
 			Victor = GetPlayer(line.iterator().next());
@@ -436,7 +422,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 		return null;
 	}
-	
+
 	/**
 	 * Get the player who has played at a certain index, inferring from PieceType.
 	 * @param index The index of the position to check.
@@ -470,6 +456,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 */
 	protected Iterable<Vector2i> LongestLine(Vector2i start, Vector2i offset)
 	{
+		// TODO the win direction is reversed horizontally and vertically. TODO how do I fix this?
 		PieceType searchType = Get(start);
 		Vector2i furthestBack = start;
 
@@ -483,7 +470,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 				break;
 			}
 		}
-		// Need to have a final or effectively final version.
+		// Need to have a final or effectively final version for the iterator
 		final Vector2i startVector = furthestBack;
 		
 		return new Iterable<Vector2i>() 

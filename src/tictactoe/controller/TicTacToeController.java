@@ -50,6 +50,7 @@ public class TicTacToeController implements ITicTacToeController
 		Width = width;
 		Height = height;
 		WinningLength = win_len;
+		Disposed = false;
 		
 		IsPlayerOneHuman = player1_human;
 		
@@ -64,6 +65,9 @@ public class TicTacToeController implements ITicTacToeController
 		return;
 	}
 	
+	/**
+	 * Initialize the controller.
+	 */
 	public void Initialize()
 	{
 		// Create the board
@@ -74,8 +78,7 @@ public class TicTacToeController implements ITicTacToeController
 		View = new TicTacToeView(Width,Height);
 		
 		// Initialize the game state
-		// TODO OK BUT HOW
-		// TODO here is where we need to initialize stuff
+		ActivePlayer = Player.CROSS; // TODO does cross always play first?
 		
 		Initialized = true;
 		return;
@@ -111,12 +114,16 @@ public class TicTacToeController implements ITicTacToeController
 			View.MoveCursor(delta_p);
 		
 		// Animate victory if necessary
-		// TODO make Victor() and IsFinished more efficient, by not checking each time
-		// and maybe doing the better win detecting function on piece placement.
 		if (Model.IsFinished()) {
-			for (Vector2i index : Model.WinningSet()) {
-				View.MakeGolden(index);
+			// TODO how do we stop accepting input once there is a winner?
+			Iterable<Vector2i> win_set = Model.WinningSet();
+			if (win_set != null) {
+				for (Vector2i index : win_set) {
+					View.MakeGolden(index);
+				}
 			}
+			// TODO remove this debug code
+			System.out.println("Game is now over!");
 		}
 		
 		// Handle AI logic before human selections so that we have at least one frame after a human selection (if any humans exist) before the AI makes its move
@@ -125,14 +132,21 @@ public class TicTacToeController implements ITicTacToeController
 		
 		// Now process selections (we do this after victory animation so that we don't skip a frame in the animation)
 		if (Input.GracelessInputSatisfied("Select")) {
-			PieceType Piece = PieceType.CROSS;
-			View.PlacePiece(View.CursorPosition(), Piece);
-			Model.Set(Piece, View.CursorPosition());
+			// Only allow placement if the cell is empty
+			if (Model.IsCellEmpty(View.CursorPosition())) {
+				// Both place it in the view and the model
+				View.PlacePiece(View.CursorPosition(), ActivePiece());
+				Model.Set(ActivePiece(), View.CursorPosition());
+				if (ActivePlayer().equals(Player.CROSS))
+					ActivePlayer = Player.CIRCLE;
+				else
+					ActivePlayer = Player.CROSS;
+			}
 		}
  		
 		return;
 	}
-	
+
 	public void Dispose()
 	{
 		if(Disposed())
@@ -156,8 +170,9 @@ public class TicTacToeController implements ITicTacToeController
 			break;
 		case GAME_OVER:
 			// TODO hers does this SLOWLY though.
-			for (Vector2i pos : event.WinningSet)
+			for (Vector2i pos : event.WinningSet) {
 				View.MakeGolden(pos);
+			}
 			break;
 		case PIECE_PLACEMENT:
 			View.PlacePiece(event.PiecePosition, event.PlacedPieceType);
@@ -185,6 +200,21 @@ public class TicTacToeController implements ITicTacToeController
 	
 	public Player ActivePlayer()
 	{return ActivePlayer;}
+	
+	/**
+	 * Find the currently active piece (what will be placed by the next player)
+	 * @return Either PieceType.CIRCLE or PieceType.CROSS, corresponding to ActivePlayer
+	 * @throws IllegalStateException if ActivePlayer is neither CIRCLE nor CROSS (when the game is over)
+	 */
+	public PieceType ActivePiece()
+	{
+		if (ActivePlayer().equals(Player.CIRCLE))
+			return PieceType.CIRCLE;
+		else if (ActivePlayer().equals(Player.CROSS))
+			return PieceType.CROSS;
+		// Triggers on Player.NEITHER and Player.NULL, but these will not happen during play
+		throw new IllegalStateException();
+	}
 	
 	public int Width()
 	{return Width;}

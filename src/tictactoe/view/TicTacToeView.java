@@ -10,6 +10,11 @@ import tictactoe.model.PieceType;
 
 public class TicTacToeView implements ITicTacToeView {
 
+	/**
+	 * Construct a new view with the given width and height.
+	 * @param width The width of the view in cells
+	 * @param height The height of the view in cells
+	 */
 	public TicTacToeView(int width, int height)
 	{
 		Width = width;
@@ -92,13 +97,13 @@ public class TicTacToeView implements ITicTacToeView {
 		if (pos == null)
 			throw new NullPointerException();
 		
-		switch (Pieces[pos.X][pos.Y].GetSelectedImage())
+		switch (Pieces[pos.Y][pos.X].GetSelectedImage())
 		{
 		case 0: // Circle
-			Pieces[pos.X][pos.Y].SetSelectedImage(2);
+			Pieces[pos.Y][pos.X].SetSelectedImage(2);
 			break;
 		case 1: // Cross
-			Pieces[pos.X][pos.Y].SetSelectedImage(3);
+			Pieces[pos.Y][pos.X].SetSelectedImage(3);
 			break;
 		default:
 			return false;
