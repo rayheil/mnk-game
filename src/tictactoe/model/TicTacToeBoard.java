@@ -394,18 +394,44 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		if (Get(use_me).equals(PieceType.NONE))
 		   return null;
 				
-		/*
-		 * Will iterate with Vector direction (0, 1), (1, 0), and (1, 1)
-		 * Somewhat silly way to do so but it works
-		 */
-		for (int i = 1; i < 4; i++) {
-			Vector2i direction = new Vector2i(i / 2, i % 2);
-			Iterable<Vector2i> line = LongestLine(use_me, direction);
-			if (LINQ.Count(line) >= WinningLength()) {
-				Victor = GetPlayer(line.iterator().next());
-				NotifyObservers(new TicTacToeEvent(Victor, line));
-				return line;
-			}
+		/* Check four directions. I can't think of a better way to handle this. */
+		Vector2i direction;
+		Iterable<Vector2i> line;
+		
+		// Horizontal
+		direction = new Vector2i(0, 1);
+		line = LongestLine(use_me, direction);
+		if (LINQ.Count(line) >= WinningLength()) {
+			Victor = GetPlayer(line.iterator().next());
+			NotifyObservers(new TicTacToeEvent(Victor, line));
+			return line;
+		}
+		
+		// Vertical
+		direction = new Vector2i(1, 0);
+		line = LongestLine(use_me, direction);
+		if (LINQ.Count(line) >= WinningLength()) {
+			Victor = GetPlayer(line.iterator().next());
+			NotifyObservers(new TicTacToeEvent(Victor, line));
+			return line;
+		}
+		
+		// First diagonal
+		direction = new Vector2i(1, 1);
+		line = LongestLine(use_me, direction);
+		if (LINQ.Count(line) >= WinningLength()) {
+			Victor = GetPlayer(line.iterator().next());
+			NotifyObservers(new TicTacToeEvent(Victor, line));
+			return line;
+		}
+		
+		// Second diagonal
+		direction = new Vector2i(1, -1);
+		line = LongestLine(use_me, direction);
+		if (LINQ.Count(line) >= WinningLength()) {
+			Victor = GetPlayer(line.iterator().next());
+			NotifyObservers(new TicTacToeEvent(Victor, line));
+			return line;
 		}
 
 		return null;
