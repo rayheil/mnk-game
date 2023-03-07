@@ -25,7 +25,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		this.WinningLength = winningLength;
 		this.Count = 0;
 		this.Observers = new LinkedList<IObserver<TicTacToeEvent>>();
-		this.Winner = Player.NULL;
+		this.Victor = Player.NULL;
 		
 		// Fill the board with PieceType.NONE
 		for (int x = 0; x < Width(); x++)
@@ -343,20 +343,28 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean IsFinished() {
-		if (!Winner.equals(Player.NULL)) {
-			NotifyObservers(new TicTacToeEvent(Winner, WinningSet()));
-			return true;	
+		return !Victor().equals(Player.NULL);
+		
+		/*
+		// If winner is set properly, this function will run super quickly.
+		System.out.println("IsFinished: Victor is " + Victor);
+		if (!Victor.equals(Player.NULL)) {
+			NotifyObservers(new TicTacToeEvent(Victor, WinningSet()));
+			return true;
 		}
 		
+		// If not, we need to find the winning set which can take forever.
+		// TODO can I omit this code? Will everything still work?
 		Iterable<Vector2i> win_set = WinningSet();
 		if (Count() == Size() || win_set != null) {
-			NotifyObservers(new TicTacToeEvent(Victor(), win_set));
+			NotifyObservers(new TicTacToeEvent(Victor, win_set)); // in finding win_set, we will set Winner
 			return true;
 		}
 		return false;
+		*/
 	}
 
-	private void NotifyObservers(TicTacToeEvent event) {
+	protected void NotifyObservers(TicTacToeEvent event) {
 		for (IObserver<TicTacToeEvent> eye : Observers)
 			eye.OnNext(event);
 	}
@@ -368,9 +376,9 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 */
 	@Override
 	public Iterable<Vector2i> WinningSet() {
-		for (int i = 0; i < Height(); i++) {
-			for (int j = 0; j < Width(); j++) {
-				Iterable <Vector2i> win_set = WinningSet(new Vector2i(i, j));
+		for (int y = 0; y < Height(); y++) {
+			for (int x = 0; x < Width(); x++) {
+				Iterable <Vector2i> win_set = WinningSet(new Vector2i(x, y));
 				if (win_set != null)
 					return win_set;
 			}
@@ -385,33 +393,19 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		
 		if (Get(use_me).equals(PieceType.NONE))
 		   return null;
-		
-		// Horizontal
-		Iterable<Vector2i> currentLine = LongestLine(use_me, new Vector2i(0,1));
-		if (LINQ.Count(currentLine) >= WinningLength()) {
-			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
-			return currentLine;
-		}
-		
-		// Vertical
-		currentLine = LongestLine(use_me, new Vector2i(1,0));
-		if (LINQ.Count(currentLine) >= WinningLength()) {
-			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
-			return currentLine;
-		}
-
-		// Diagonal down
-		currentLine = LongestLine(use_me, new Vector2i(1,1));
-		if (LINQ.Count(currentLine) >= WinningLength()) {
-			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
-			return currentLine;
-		}
-		
-		// Diagonal up
-		currentLine = LongestLine(use_me, new Vector2i(-1,1));
-		if (LINQ.Count(currentLine) >= WinningLength()) {
-			NotifyObservers(new TicTacToeEvent(GetPlayer(currentLine.iterator().next()), currentLine));
-			return currentLine;
+				
+		/*
+		 * Will iterate with Vector direction (0, 1), (1, 0), and (1, 1)
+		 * Somewhat silly way to do so but it works
+		 */
+		for (int i = 1; i < 4; i++) {
+			Vector2i direction = new Vector2i(i / 2, i % 2);
+			Iterable<Vector2i> line = LongestLine(use_me, direction);
+			if (LINQ.Count(line) >= WinningLength()) {
+				Victor = GetPlayer(line.iterator().next());
+				NotifyObservers(new TicTacToeEvent(Victor, line));
+				return line;
+			}
 		}
 
 		return null;
@@ -497,19 +491,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	}
 
 	@Override
-	public Player Victor() {
-		if (!IsFinished())
-			return Player.NULL;
-		
-		Iterable<Vector2i> winSet = WinningSet();
-		
-		if (winSet == null)
-			return Player.NEITHER;
-		
-		Iterator<Vector2i> winIter = winSet.iterator();
-		PieceType winningPiece = Get(winIter.next());
-		return winningPiece.equals(PieceType.CIRCLE) ? Player.CIRCLE : Player.CROSS;
-	}
+	public Player Victor()
+	{return Victor;}
 
 	@Override
 	public int Width()
@@ -551,7 +534,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	/**
 	 * The player that has won, if one exists.
 	 */
-	protected Player Winner;
+	protected Player Victor;
 	
 	/**
 	 * A list of every eye observing this board.

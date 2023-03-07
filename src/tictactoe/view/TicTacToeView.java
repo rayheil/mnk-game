@@ -18,6 +18,7 @@ public class TicTacToeView implements ITicTacToeView {
 		CursorPosition = new Vector2i(0, 0);
 		Pieces = new MultiImageComponent[Height][Width];		
 		Grid = new MultiImageComponent[Height][Width];
+		Cursor = new MultiImageComponent();
 		
 		/* Place pieces and cells around the board.
 		 * The cells will immediately be visible, but
@@ -33,24 +34,26 @@ public class TicTacToeView implements ITicTacToeView {
 				GameEngine.Game().AddComponent(Grid[y][x]);
 				
 				// Add the relevant images to Pieces[y][x] and place it in the right location
-				Pieces[y][x].Translate(168 * x + 10, 168 * y + 22.5);
+				Pieces[y][x].Translate(CellSize * x + 10, CellSize * y + 22.5);
 				Pieces[y][x].AddImage(new File("assets/images/Circle.png"));
 				Pieces[y][x].AddImage(new File("assets/images/Cross.png"));
 				Pieces[y][x].AddImage(new File("assets/images/Golden Circle.png"));
 				Pieces[y][x].AddImage(new File("assets/images/Golden Cross.png"));
 				
 				// The grid cell only requires one image, and is shown right away
-				Grid[y][x].Translate(168 * x + 8, 168 * y + 19.5);
+				Grid[y][x].Translate(CellSize * x + 8, CellSize * y + 19.5);
 				Grid[y][x].AddImage(new File("assets/images/GridCell.png"));
 				Grid[y][x].SetSelectedImage(0);	
 			}
 		}
 		
-		PlacePiece(new Vector2i(1, 1), PieceType.CROSS);
-		PlacePiece(new Vector2i(1, 2), PieceType.CIRCLE);
-		PlacePiece(new Vector2i(3, 1), PieceType.CROSS);
-
-
+		/*
+		 * Initialize the cursor and add it as a component
+		 */
+		GameEngine.Game().AddComponent(Cursor);
+		Cursor.AddImage(new File("assets/images/Selection.png"));
+		Cursor.SetSelectedImage(0);
+		Cursor.Translate(11, 22.5);
 	}
 	
 	@Override
@@ -113,8 +116,31 @@ public class TicTacToeView implements ITicTacToeView {
 
 	@Override
 	public boolean MoveCursor(Vector2i dir) {
-		// TODO Auto-generated method stub
-		return false;
+		boolean moved = false;
+				
+		// Move in X direction if possible
+		if (dir.X > 0 && CursorPosition.X < Width()-1) {
+			Cursor.Translate(CellSize, 0);
+			CursorPosition = CursorPosition.Add(new Vector2i(1, 0));
+			moved = true;
+		} else if (dir.X < 0 && CursorPosition.X > 0) {
+			Cursor.Translate(-1*CellSize, 0);
+			CursorPosition = CursorPosition.Add(new Vector2i(-1, 0));
+			moved = true;
+		}
+		
+		// Move in Y direction if possible
+		if (dir.Y < 0 && CursorPosition.Y < Height()-1) {
+			Cursor.Translate(0, CellSize);
+			CursorPosition = CursorPosition.Add(new Vector2i(0, 1));
+			moved = true;
+		} else if (dir.Y > 0 && CursorPosition.Y > 0) {
+			Cursor.Translate(0, -1*CellSize);
+			CursorPosition = CursorPosition.Add(new Vector2i(0, -1));
+			moved = true;
+		}
+		
+		return moved;
 	}
 
 	@Override
@@ -150,9 +176,19 @@ public class TicTacToeView implements ITicTacToeView {
 	protected int Width;
 	
 	/**
+	 * The size of a cell in pixels
+	 */
+	protected final int CellSize = 168;
+	
+	/**
 	 * The position of the cursor on this view (zero-indexed).
 	 */
 	protected Vector2i CursorPosition;
+	
+	/**
+	 * The player's cursor
+	 */
+	protected MultiImageComponent Cursor;
 	
 	/**
 	 * Whether this view has been disposed.

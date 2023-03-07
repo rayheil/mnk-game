@@ -86,22 +86,50 @@ public class TicTacToeController implements ITicTacToeController
 	
 	public void Update(long delta)
 	{
+		int delta_x = 0;
+		int delta_y = 0;
+		
 		// Update our input manager
 		Input = GameEngine.Game().GetService(InputManager.class);
 		
 		// Allow the player to move the cursor as desired
+		if (Input.GracelessInputSatisfied("Left"))
+			delta_x--;
 		
+		if (Input.GracelessInputSatisfied("Right"))
+			delta_x++;
+		
+		if (Input.GracelessInputSatisfied("Down"))
+			delta_y--;
+		
+		if (Input.GracelessInputSatisfied("Up"))
+			delta_y++;
+		
+		Vector2i delta_p = new Vector2i(delta_x, delta_y);
+		
+		if (!delta_p.IsZero())
+			View.MoveCursor(delta_p);
 		
 		// Animate victory if necessary
-		
+		// TODO make Victor() and IsFinished more efficient, by not checking each time
+		// and maybe doing the better win detecting function on piece placement.
+		if (Model.IsFinished()) {
+			for (Vector2i index : Model.WinningSet()) {
+				View.MakeGolden(index);
+			}
+		}
 		
 		// Handle AI logic before human selections so that we have at least one frame after a human selection (if any humans exist) before the AI makes its move
 		// This frame is important because the AI may lag the game, and the human will want to see their move
-		
+		// TODO AI hmmm how SIMPLE
 		
 		// Now process selections (we do this after victory animation so that we don't skip a frame in the animation)
-		
-		
+		if (Input.GracelessInputSatisfied("Select")) {
+			PieceType Piece = PieceType.CROSS;
+			View.PlacePiece(View.CursorPosition(), Piece);
+			Model.Set(Piece, View.CursorPosition());
+		}
+ 		
 		return;
 	}
 	
