@@ -304,6 +304,10 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean Clear() {
+		// Reset victor and count
+		Victor = Player.NULL;
+		Count = 0;
+		
 		// Initialize the board again.
 		for (int y = 0; y < Height(); y++)
 			for (int x = 0; x < Width(); x++)
@@ -347,7 +351,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	@Override
 	public boolean IsFinished() {
-		return (Count() >= Height() * Width() || !Victor().equals(Player.NULL));
+		return (Count() >= Size() || !Victor().equals(Player.NULL));
 	}
 
 	protected void NotifyObservers(TicTacToeEvent event) {

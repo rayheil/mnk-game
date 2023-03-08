@@ -117,7 +117,6 @@ public class TicTacToe extends GameEngine
 	
 	@Override protected void Update(long delta)
 	{
-		// TODO in hers, this is where all the input logic goes. HOW DO I HANDLE IT???
 		return;
 	}
 	

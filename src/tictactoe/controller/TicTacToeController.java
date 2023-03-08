@@ -1,10 +1,7 @@
 package tictactoe.controller;
 
-import java.io.File;
-
 import gamecore.GameEngine;
 import gamecore.datastructures.vectors.Vector2i;
-import gamecore.gui.gamecomponents.MultiImageComponent;
 import gamecore.input.InputManager;
 import tictactoe.AI.ITicTacToeAI;
 import tictactoe.AI.TicTacToeAI;
@@ -122,8 +119,6 @@ public class TicTacToeController implements ITicTacToeController
 					View.MakeGolden(index);
 				}
 			}
-			// TODO remove this debug code
-			System.out.println("Game is now over!");
 		}
 		
 		// Handle AI logic before human selections so that we have at least one frame after a human selection (if any humans exist) before the AI makes its move
@@ -131,7 +126,8 @@ public class TicTacToeController implements ITicTacToeController
 		// TODO AI hmmm how SIMPLE
 		
 		// Now process selections (we do this after victory animation so that we don't skip a frame in the animation)
-		if (Input.GracelessInputSatisfied("Select")) {
+		// Pieces can only be played if the model is not finished
+		if (Input.GracelessInputSatisfied("Select") && !Model.IsFinished()) {
 			// Only allow placement if the cell is empty
 			if (Model.IsCellEmpty(View.CursorPosition())) {
 				// Both place it in the view and the model
@@ -193,8 +189,8 @@ public class TicTacToeController implements ITicTacToeController
 	
 	public void ResetGame()
 	{
-		// TODO need to write this, but nowhere near ready to do so
-		
+		Model.Clear();
+		ActivePlayer = Player.CROSS;
 		return;
 	}
 	
