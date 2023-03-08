@@ -23,7 +23,9 @@ It'll probably be something along the lines of:
 
 The program takes three to five command line arguments, as detailed below.
 
-**Two human players:** Enter integers for the width and height of the board, as well as the required
+### Two human players
+
+Enter integers for the width and height of the board, as well as the required
 number of squares in a row required to win. The winning length may not be less
 than either the width or the height of the board.
 
@@ -31,14 +33,18 @@ than either the width or the height of the board.
 ./runme.sh WIDTH HEIGHT WIN_LENGTH
 ```
 
-**One AI player:** If `AI_PLAYER` is true the AI will play as crosses (first player), and if it is
+### One AI player
+
+If `AI_PLAYER` is true the AI will play as crosses (first player), and if it is
 false the computer will play as circles (second player).
 
 ```
 ./runme.sh WIDTH HEIGHT WIN_LENGTH AI_PLAYER
 ```
 
-**AI player with set difficulty:** The specified difficulty can be an integer
+### One AI player with set difficulty
+
+The specified difficulty can be an integer
 between 1 and 10, with 1 being the easiest and 10 being the hardest.
 
 ```
