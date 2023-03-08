@@ -159,7 +159,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 				{
 					@Override
 					public boolean hasNext() {	
-						return currentIndex < Width() * Height();
+						return currentIndex < Size();
 					}
 
 					@Override
@@ -173,7 +173,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 					}
 					
 					/**
-					 * The current index of the iterator. (0 <= currentIndex < Width() * Height())
+					 * The current index of the iterator. (0 <= currentIndex < Size())
 					 */
 					protected int currentIndex = 0;
 				};
@@ -361,8 +361,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 
 	/**
 	 * {@inheritDoc}
-	 * <b>DON'T USE THIS!</b> This method is much less efficient than the version that takes a Vector2i as input,
-	 * but it is provided anyway.
+	 * <b>DON'T USE THIS!</b> This method is much less efficient than the version that takes a
+	 * Vector2i as input, but it is provided anyway for convenience.
 	 */
 	@Override
 	public Iterable<Vector2i> WinningSet() {
