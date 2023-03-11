@@ -72,7 +72,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 			throw new IndexOutOfBoundsException();
 		
 		// Increase count if we are filling a new cell
-		if (Get(index) == PieceType.NONE) {
+		if (Get(index).equals(PieceType.NONE) && !t.equals(PieceType.NONE)) {
 			Count++;
 			if (Count() >= Size())
 				Victor = Player.NEITHER;
@@ -346,6 +346,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 				clonedBoard.Set(t, pos);
 			}
 		}
+		clonedBoard.Victor = Victor();
+		clonedBoard.Count = Count();
 		return clonedBoard;
 	}
 

@@ -124,25 +124,36 @@ public class TicTacToeController implements ITicTacToeController
 		// Handle AI logic before human selections so that we have at least one frame after a human selection (if any humans exist) before the AI makes its move
 		// This frame is important because the AI may lag the game, and the human will want to see their move
 		// TODO AI hmmm how SIMPLE
+		if (ActivePiece().equals(PieceType.CROSS) && !IsPlayerOneHuman && !Model.IsFinished()) {
+			Vector2i move = PlayerOneAI.GetNextMove(Model);
+			PlacePiece(move);
+		}
+		else if (ActivePiece().equals(PieceType.CIRCLE) && !IsPlayerTwoHuman && !Model.IsFinished()) {
+			Vector2i move = PlayerTwoAI.GetNextMove(Model);
+			PlacePiece(move);
+		}
 		
 		// Now process selections (we do this after victory animation so that we don't skip a frame in the animation)
 		// Pieces can only be played if the model is not finished
 		if (Input.GracelessInputSatisfied("Select") && !Model.IsFinished()) {
 			// Only allow placement if the cell is empty
-			if (Model.IsCellEmpty(View.CursorPosition())) {
-				// Both place it in the view and the model
-				View.PlacePiece(View.CursorPosition(), ActivePiece());
-				Model.Set(ActivePiece(), View.CursorPosition());
-				if (ActivePlayer().equals(Player.CROSS))
-					ActivePlayer = Player.CIRCLE;
-				else
-					ActivePlayer = Player.CROSS;
-			}
+			if (Model.IsCellEmpty(View.CursorPosition()))
+				PlacePiece(View.CursorPosition());
 		}
  		
 		return;
 	}
 
+	protected void PlacePiece(Vector2i pos)
+	{
+		View.PlacePiece(pos, ActivePiece());
+		Model.Set(ActivePiece(), pos);
+		if (ActivePlayer().equals(Player.CROSS))
+			ActivePlayer = Player.CIRCLE;
+		else
+			ActivePlayer = Player.CROSS;
+	}
+	
 	public void Dispose()
 	{
 		if(Disposed())
