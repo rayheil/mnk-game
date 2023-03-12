@@ -462,7 +462,6 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	 */
 	protected Iterable<Vector2i> LongestLine(Vector2i start, Vector2i offset)
 	{
-		// TODO the win direction is reversed horizontally and vertically. TODO how do I fix this?
 		PieceType searchType = Get(start);
 		Vector2i furthestBack = start;
 

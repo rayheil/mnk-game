@@ -1,5 +1,7 @@
 package tictactoe.controller;
 
+import java.util.concurrent.TimeUnit;
+
 import gamecore.GameEngine;
 import gamecore.datastructures.vectors.Vector2i;
 import gamecore.input.InputManager;
@@ -75,7 +77,7 @@ public class TicTacToeController implements ITicTacToeController
 		View = new TicTacToeView(Width,Height);
 		
 		// Initialize the game state
-		ActivePlayer = Player.CROSS; // TODO does cross always play first?
+		ActivePlayer = Player.CROSS;
 		
 		Initialized = true;
 		return;
@@ -95,16 +97,12 @@ public class TicTacToeController implements ITicTacToeController
 		// Allow the player to move the cursor as desired
 		if (Input.GracelessInputSatisfied("Left"))
 			delta_x--;
-		
 		if (Input.GracelessInputSatisfied("Right"))
 			delta_x++;
-		
 		if (Input.GracelessInputSatisfied("Down"))
 			delta_y--;
-		
 		if (Input.GracelessInputSatisfied("Up"))
 			delta_y++;
-		
 		Vector2i delta_p = new Vector2i(delta_x, delta_y);
 		
 		if (!delta_p.IsZero())
@@ -112,7 +110,6 @@ public class TicTacToeController implements ITicTacToeController
 		
 		// Animate victory if necessary
 		if (Model.IsFinished()) {
-			// TODO how do we stop accepting input once there is a winner?
 			Iterable<Vector2i> win_set = Model.WinningSet();
 			if (win_set != null) {
 				for (Vector2i index : win_set) {
@@ -121,21 +118,24 @@ public class TicTacToeController implements ITicTacToeController
 			}
 		}
 		
+		// If the model is finished, nobody should be able to play.
+		if (Model.IsFinished())
+			return;
+		
 		// Handle AI logic before human selections so that we have at least one frame after a human selection (if any humans exist) before the AI makes its move
 		// This frame is important because the AI may lag the game, and the human will want to see their move
-		// TODO AI hmmm how SIMPLE
-		if (ActivePiece().equals(PieceType.CROSS) && !IsPlayerOneHuman && !Model.IsFinished()) {
+		if (ActivePiece().equals(PieceType.CROSS) && !IsPlayerOneHuman) {
 			Vector2i move = PlayerOneAI.GetNextMove(Model);
 			PlacePiece(move);
 		}
-		else if (ActivePiece().equals(PieceType.CIRCLE) && !IsPlayerTwoHuman && !Model.IsFinished()) {
+		else if (ActivePiece().equals(PieceType.CIRCLE) && !IsPlayerTwoHuman) {
 			Vector2i move = PlayerTwoAI.GetNextMove(Model);
 			PlacePiece(move);
 		}
 		
 		// Now process selections (we do this after victory animation so that we don't skip a frame in the animation)
 		// Pieces can only be played if the model is not finished
-		if (Input.GracelessInputSatisfied("Select") && !Model.IsFinished()) {
+		if (Input.GracelessInputSatisfied("Select")) {
 			// Only allow placement if the cell is empty
 			if (Model.IsCellEmpty(View.CursorPosition()))
 				PlacePiece(View.CursorPosition());
@@ -176,7 +176,7 @@ public class TicTacToeController implements ITicTacToeController
 			View.Clear();
 			break;
 		case GAME_OVER:
-			// TODO hers does this SLOWLY though.
+			// TODO hers has delay. Should I worry about it?
 			for (Vector2i pos : event.WinningSet) {
 				View.MakeGolden(pos);
 			}
