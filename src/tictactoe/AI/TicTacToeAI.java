@@ -35,8 +35,6 @@ public class TicTacToeAI implements ITicTacToeAI {
 		
 		Player = player;
 		Difficulty = difficulty;
-		// TODO the rest of the dang constructor lol
-		// is it even a thing that happens? this thing has so few required attributes.
 	}
 	
 	@Override
@@ -50,21 +48,23 @@ public class TicTacToeAI implements ITicTacToeAI {
 		// Search every child state of this board, keeping track of which gets the best minimax score when maximizing
 		for (Vector2i move : LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t)))
 		{
+			System.out.println("checking another next move...");
 			ITicTacToeBoard cloned = board.Clone();
 			cloned.Set(GetPieceType(), move);
-			double score = Minimax(cloned, Difficulty, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, true);
+			// TODO minimizing first seems to make the AI work better, I don't know why
+			double score = Minimax(cloned, Difficulty, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
 			if (score > best_score) {
 				best_score = score;
 				best_move = move;
 			}
 		}
+		if (best_move == null)
+			throw new NullPointerException("AI was unable to get next move.");
 		return best_move;
 	}
 	
 	/**
 	 * Perform the minimax algorithm and return the best value.
-	 * TODO not seeing how this connects to the program. I need not only the most correct value,
-	 * but also what move it corresponds to. So maybe need to track that too. But I really don't know.
 	 * @param state The current state of the board.
 	 * @param depth The depth to search.
 	 * @param alpha The current best maximum.
@@ -74,43 +74,48 @@ public class TicTacToeAI implements ITicTacToeAI {
 	 */
 	protected double Minimax(ITicTacToeBoard state, int depth, double alpha, double beta, boolean maximizing)
 	{
-		if (depth == 0 || state.IsFinished()) {
-			return EvaluateState(state);
-		}
+		if (depth == 0 || state.IsFinished())
+			return StaticEvalutation(state);
 		
 		if (maximizing) {
-			double max = Double.NEGATIVE_INFINITY;
+			double maxEval = Double.NEGATIVE_INFINITY;
+			
+			// For each child position, recursively find the move that helps the AI most
 			for (ITicTacToeBoard next : GetChildStates(state, GetPieceType())) {
-				max = Double.max(max, Minimax(next, depth-1, alpha, beta, false));
+				maxEval = Double.max(maxEval, Minimax(next, depth-1, alpha, beta, false));
 				// If we did too well the minimizer will never choose this, prune
-				if (max > beta)
+				alpha = Double.max(alpha, maxEval);
+				if (beta <= alpha)
 					break;
-				alpha = Double.max(alpha, max);
 			}
-			return max;
+			return maxEval;
 		}
 		else {
-			double min = Double.POSITIVE_INFINITY;
+			double minEval = Double.POSITIVE_INFINITY;
+			
+			// For each child position, recursively find the move that hurts the AI most
 			for (ITicTacToeBoard next : GetChildStates(state, GetOpponentPieceType())) {
-				min = Double.min(min, Minimax(next, depth-1, alpha, beta, true));
+				minEval = Double.min(minEval, Minimax(next, depth-1, alpha, beta, true));
 				// If we did too poorly the maximizer will never choose this, prune
-				if (min < alpha)
+				beta = Double.min(beta, minEval);
+				if (beta <= alpha)
 					break;
-				beta = Double.min(beta, min);
 			}
-			return min;
+			return minEval;
 		}
 	}
 	
 	/**
-	 * 
+	 * Evaluate a state and return the value of that state.
+	 * A positive value indicates that this AI is doing better, a negative value that this AI is doing worse.
+	 * @return The goodness of the state (from -inf to inf)
 	 */
-	protected double EvaluateState(ITicTacToeBoard state)
+	protected double StaticEvalutation(ITicTacToeBoard state)
 	{
 		// Return inf if we won, -inf if we lost, and 0 if we tied.
 		if (state.IsFinished())
 		{
-			if (state.Victor().equals(this.Player))
+			if (state.Victor().equals(GetPlayer()))
 				return Double.POSITIVE_INFINITY;
 			else if (state.Victor().equals(tictactoe.model.Player.NEITHER))
 				return 0;
@@ -149,8 +154,11 @@ public class TicTacToeAI implements ITicTacToeAI {
 	 * @param played The type of piece that will be played.
 	 * @return Iterable over all empty cells in the board
 	 */
+	// TODO "it is wise to explore positions that are more likely to be good first" how do I do that???
+	// it's an optimization thing that is obvious, but it's so scarryyyyy. like, GetChild should return the maybe best moves first?
 	protected Iterable<ITicTacToeBoard> GetChildStates(ITicTacToeBoard board, PieceType playedPiece)
 	{
+		//System.out.println("getting child stated with piece " + playedPiece);
 		return new Iterable<ITicTacToeBoard>()
 		{
 			@Override
@@ -172,7 +180,6 @@ public class TicTacToeAI implements ITicTacToeAI {
 						return playedBoard;
 					}
 					
-					// TODO will Where ever be null? Would cause a null pointer exception I don't wanna handle
 					protected Iterator<Vector2i> Iter = LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t)).iterator();
 				};
 			}
@@ -190,15 +197,13 @@ public class TicTacToeAI implements ITicTacToeAI {
 	 */
 	public PieceType GetPieceType()
 	{
-		switch (GetPlayer())
-		{
+		switch (GetPlayer()) {
 		case CIRCLE:
 			return PieceType.CIRCLE;
 		case CROSS:
 			return PieceType.CROSS;
 		default:
-			// If player is neither circle nor cross, the constructor will fail.
-			return null;
+			throw new IllegalStateException("AI Player was neither CROSS nor CIRCLE.");
 		}
 	}
 	
@@ -215,8 +220,7 @@ public class TicTacToeAI implements ITicTacToeAI {
 		case CROSS:
 			return PieceType.CIRCLE;
 		default:
-			// If player is neither circle nor cross, the constructor will fail.
-			return null;
+			throw new IllegalStateException("AI Player was neither CROSS nor CIRCLE.");
 		}
 	}
 
