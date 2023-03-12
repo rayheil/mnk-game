@@ -69,7 +69,6 @@ public class TicTacToeView implements ITicTacToeView {
 		if (pos == null || piece == null)
 			throw new NullPointerException();
 		
-		// TODO Bounds checking on pos is probably needed, but fuck do I not want to
 		if (pos.X < 0 || pos.X > Width() || pos.Y < 0 || pos.Y > Height())
 			throw new IndexOutOfBoundsException();
 		
@@ -86,7 +85,6 @@ public class TicTacToeView implements ITicTacToeView {
 		default:
 			break;
 		}
-		// TODO Auto-generated method stub
 	}
 
 	@Override
@@ -150,8 +148,17 @@ public class TicTacToeView implements ITicTacToeView {
 
 	@Override
 	public void Dispose() {
+		// Remove cursor
+		GameEngine.Game().RemoveComponent(Cursor);
+		
+		// Remove every added piece and grid cell
+		for (int x = 0; x < Width(); x++) {
+			for (int y = 0; y < Height(); y++) {
+				GameEngine.Game().RemoveComponent(Pieces[y][x]);
+				GameEngine.Game().RemoveComponent(Grid[y][x]);
+			}
+		}
 		Disposed = true;
-		// TODO how do we do this thru the game engine?		
 	}
 
 	@Override
