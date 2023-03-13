@@ -9,16 +9,12 @@ College in the Spring 2023 semester.
 # Running
 
 The class that contains the `main` method to run this code is
-`tictactoe.Bootstrap`.
+`tictactoe.Bootstrap`. As long as the game engine is working on your end, all
+the code should be able to run. If there's some disconnect between what you
+expected and what I've sent, let me know and I'll try to fix it right away!
 
-To run through eclipse, open the project and select Run > Run Configurations
-from the topbar. Under the Main tab, click to search for a main class and select
-`tictactoe.Bootstrap`.
-
-Under the Arguments tab, you need to enter the game parameters. For a basic game
-of tic-tac-toe where you play first against an AI, enter the program arguments
-`3 3 3 false`. Then, click Run at the bottom of the popup window to start the
-game. For more complex games, see the Run Configuration section below.
+The command line arguments work as specified on the project example page, and
+I've also made it clear in the section below. 
 
 
 # Controls
@@ -35,23 +31,24 @@ board is large, so be warned!
 
 # A note on efficiency
 
-The AI does not work as well as I think it should, but I've put in all the time
-that I'm willing to on this project. I know I could have gotten an extension,
-but I can't cope with having this hanging over my head for any longer. Detail on
-what this code can and can't handle below.
+The AI does not work as well as I think it probably should, but I've put in all
+the time that I'm willing to on this project. I know I could have gotten an
+extension, but I can't cope with having this hanging over my head for any
+longer. Detail on what this code can and can't handle below.
 
 The AI runs well (under 30s evaluation times) at level 10 on a 4x4 board, but a
 4x5 board is too much for the max level AI. With a lower difficulty level such
-as 7 (which is still very competent at the game especially against
+as 7 (which is still very competent at the game especially against one
 sleep-deprived Ray), the size of the board can be pushed up to a 6x6, which
-covers my screen. 
+fills my screen.
 
 It's not great efficiency, but I've taken by best attempts at
 alpha-beta pruning, static state evaluation, and child state generation and I
 don't think I can improve them any more.
 
 I understand if this is basis to fail this part of the project, but I hope you
-can understand.
+understand why I'm calling it at this point.
+
 
 # Run Configuration
 
