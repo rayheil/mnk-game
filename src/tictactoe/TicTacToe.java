@@ -1,10 +1,8 @@
 package tictactoe;
 
 import java.awt.event.KeyEvent;
-import java.io.File;
 
 import gamecore.GameEngine;
-import gamecore.gui.gamecomponents.MultiImageComponent;
 import gamecore.input.InputManager;
 import gamecore.input.InputMap;
 import tictactoe.controller.ITicTacToeController;

@@ -1,7 +1,5 @@
 package tictactoe.controller;
 
-import java.util.concurrent.TimeUnit;
-
 import gamecore.GameEngine;
 import gamecore.datastructures.vectors.Vector2i;
 import gamecore.input.InputManager;
@@ -175,7 +173,6 @@ public class TicTacToeController implements ITicTacToeController
 			View.Clear();
 			break;
 		case GAME_OVER:
-			// TODO hers has delay. Should I worry about it?
 			for (Vector2i pos : event.WinningSet) {
 				View.MakeGolden(pos);
 			}
@@ -289,12 +286,6 @@ public class TicTacToeController implements ITicTacToeController
 	 * The active player (if any).
 	 */
 	protected Player ActivePlayer;
-	
-	/**
-	 * The amount of time delay between goldenizations upon victory.
-	 * TODO maybe remove this
-	 */
-	protected final long GoldenLag = 100;
 	
 	/**
 	 * If true, then this component has been initialized.

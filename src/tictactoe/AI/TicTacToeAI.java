@@ -2,18 +2,13 @@ package tictactoe.AI;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Random;
 
 import gamecore.LINQ.LINQ;
-import gamecore.datastructures.vectors.Vector2d;
 import gamecore.datastructures.vectors.Vector2i;
 import tictactoe.model.ITicTacToeBoard;
 import tictactoe.model.Player;
-import tictactoe.model.TicTacToeEvent;
 import tictactoe.model.PieceType;
 
 /**
@@ -49,7 +44,6 @@ public class TicTacToeAI implements ITicTacToeAI
 		
 		Player = player;
 		Difficulty = difficulty;
-		Prunes = 0; // TODO REMOVE
 	}
 	
 	@Override
@@ -67,8 +61,6 @@ public class TicTacToeAI implements ITicTacToeAI
 		// Search every child state of this board, keeping track of which gets the best minimax score when maximizing
 		for (Vector2i move : LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t)))
 		{
-			// TODO remove debug print 
-			System.out.println("checking another next move...");
 			ITicTacToeBoard cloned = board.Clone();
 			cloned.Set(GetPieceType(), move);
 			
@@ -124,10 +116,8 @@ public class TicTacToeAI implements ITicTacToeAI
 				maxEval = Double.max(maxEval, Minimax(cloned, depth-1, alpha, beta, false));
 				// If we did too well the minimizer will never choose this, prune
 				alpha = Double.max(alpha, maxEval);
-				if (beta <= alpha) {
-					Prunes++; // TODO remove
+				if (beta <= alpha)
 					break;
-				}
 			}
 			return maxEval;
 		}
@@ -141,13 +131,9 @@ public class TicTacToeAI implements ITicTacToeAI
 				minEval = Double.min(minEval, Minimax(cloned, depth-1, alpha, beta, true));
 				// If we did too poorly the maximizer will never choose this, prune
 				beta = Double.min(beta, minEval);
-				if (beta <= alpha) {
-					Prunes++; // TODO remove\
+				if (beta <= alpha)
 					break;
-				}
 			}
-			System.out.println("  pruned " + Prunes + " times.");
-			Prunes = 0;
 			return minEval;
 		}
 	}
@@ -175,7 +161,6 @@ public class TicTacToeAI implements ITicTacToeAI
 		int score = 0;
 		
 		// Reward the longest lines
-		// TODO could optimize a lot by not rechecking stuff but IDK how really...
 		HashSet<Vector2i> seen = new HashSet<Vector2i>();
 		for (Vector2i pos : state.IndexSet(true))
 		{
@@ -210,8 +195,6 @@ public class TicTacToeAI implements ITicTacToeAI
 	 * @param board The current board state.
 	 * @return Iterable over all empty cells in the board
 	 */
-	// TODO "it is wise to explore positions that are more likely to be good first" how do I do that???
-	// it's an optimization thing that is obvious, but it's so scarryyyyy. like, GetChild should return the maybe best moves first?
 	public Iterable<Vector2i> GetChildStates(ITicTacToeBoard board)
 	{
 		LinkedList<Vector2i> childStates = new LinkedList<Vector2i>();
@@ -248,19 +231,17 @@ public class TicTacToeAI implements ITicTacToeAI
 		/*
 		 * Add the squares at the corners of the grid if they are available.
 		 */
-		pos = new Vector2i(0, 0);
-		if (board.IsCellEmpty(pos))
-			childStates.add(pos);
-		pos = new Vector2i(board.Width() - 1, 0);
-		if (board.IsCellEmpty(pos))
-			childStates.add(pos);
-		pos = new Vector2i(0, board.Height() - 1);
-		if (board.IsCellEmpty(pos))
-			childStates.add(pos);
-		pos = new Vector2i(board.Width() - 1, board.Height() - 1);
-		if (board.IsCellEmpty(pos))
-			childStates.add(pos);
-
+		ArrayList<Vector2i> corners = new ArrayList<Vector2i>(4);
+		corners.add(new Vector2i(0, 0));
+		corners.add(new Vector2i(board.Width() - 1, 0));
+		corners.add(new Vector2i(0, board.Height() - 1));
+		corners.add(new Vector2i(board.Width() - 1, board.Height() - 1));
+		
+		for (Vector2i corner : corners) {
+			if (board.IsCellEmpty(corner))
+				childStates.add(corner);
+		}
+	
 		/*
 		 * Add the other squares in the grid, not caring as much about the order now.
 		 */
@@ -342,9 +323,4 @@ public class TicTacToeAI implements ITicTacToeAI
 	 * Which player (CROSS or CIRCLE) this AI is playing
 	 */
 	protected Player Player;
-	
-	/**
-	 * TODO REMOVE COUNT OF PRUNES
-	 */
-	protected int Prunes;
 }
