@@ -65,4 +65,12 @@ public interface ITicTacToeBoard extends IGrid<Vector2i,PieceType>, IObservable<
 	 * Obtains the number of pieces a player needs in a row to win.
 	 */
 	public int WinningLength();
+
+	/**
+	 * Obtain the largest possible line in a direction specified by an offset vector.
+	 * @param center The starting point of the line, will be searched on both sides.
+	 * @param offset The direction to search in.
+	 * @return An iterable containing each cell in the longest line in that direction. Order may not be correct.
+	 */
+	public Iterable<Vector2i> LongestLine(Vector2i pos, Vector2i direction);
 }

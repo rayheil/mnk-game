@@ -112,8 +112,8 @@ public class TicTacToeView implements ITicTacToeView {
 
 	@Override
 	public void Clear() {
-		for (int x = 0; x < Height(); x++)
-			for (int y = 0; y < Width(); y++)
+		for (int x = 0; x < Width(); x++)
+			for (int y = 0; y < Height(); y++)
 				PlacePiece(new Vector2i(x, y), PieceType.NONE);
 	}
 

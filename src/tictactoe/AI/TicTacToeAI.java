@@ -1,16 +1,19 @@
 package tictactoe.AI;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Random;
 
 import gamecore.LINQ.LINQ;
 import gamecore.datastructures.vectors.Vector2d;
 import gamecore.datastructures.vectors.Vector2i;
 import tictactoe.model.ITicTacToeBoard;
 import tictactoe.model.Player;
+import tictactoe.model.TicTacToeEvent;
 import tictactoe.model.PieceType;
 
 /**
@@ -55,6 +58,10 @@ public class TicTacToeAI implements ITicTacToeAI
 		if (board.IsFinished())
 			throw new IllegalStateException("Board is finished and has no next move.");
 		
+		// Difficulty 1 is the worst thing I could come up with, playing randomly
+		if (Difficulty == 1)
+			return GetRandomMove(board);
+		
 		double best_score = Double.NEGATIVE_INFINITY;
 		Vector2i best_move = null;
 		// Search every child state of this board, keeping track of which gets the best minimax score when maximizing
@@ -66,7 +73,7 @@ public class TicTacToeAI implements ITicTacToeAI
 			cloned.Set(GetPieceType(), move);
 			
 			// This is effectively one layer of minimax, so we start out by decreasing depth and maximizing
-			double score = Minimax(cloned, Difficulty-1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
+			double score = Minimax(cloned, Difficulty-2, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
 			if (score >= best_score) { // if no state is winnable we should still decide a move.
 				best_score = score;
 				best_move = move;
@@ -75,6 +82,22 @@ public class TicTacToeAI implements ITicTacToeAI
 		if (best_move == null)
 			throw new NullPointerException("AI was unable to get next move.");
 		return best_move;
+	}
+	
+	/**
+	 * Get a random valid move on the board.
+	 * @param state The board to use.
+	 * @return A valid move on the board, chosen randomly.
+	 */
+	public Vector2i GetRandomMove(ITicTacToeBoard board)
+	{
+		Iterable<Vector2i> open = LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t));
+		ArrayList<Vector2i> playable = new ArrayList<Vector2i>();
+		for (Vector2i pos : open)
+			playable.add(pos);
+		
+        Random rand = new Random();
+        return playable.get(rand.nextInt(playable.size()));		
 	}
 	
 	/**
@@ -149,42 +172,36 @@ public class TicTacToeAI implements ITicTacToeAI
 				return Double.NEGATIVE_INFINITY;
 		}
 		
-		/*
-		 * If state is NOT finished, tally up the 
-		 */
-		ArrayList<Vector2d> points = new ArrayList<Vector2d>(5);
-		points.add(new Vector2d(state.Width() / 2, state.Height() / 2));
-		points.add(new Vector2d(0, 0));
-		points.add(new Vector2d(state.Width() - 1, 0));
-		points.add(new Vector2d(0, state.Height() - 1));
-		points.add(new Vector2d(state.Width() - 1, state.Height() - 1));
-				
-		// If the state is not finished, tally up the most influential played squares
-		int stateValue = 0;
+		int score = 0;
+		
+		// Reward the longest lines
+		// TODO could optimize a lot by not rechecking stuff but IDK how really...
+		HashSet<Vector2i> seen = new HashSet<Vector2i>();
 		for (Vector2i pos : state.IndexSet(true))
 		{
-			// If the square belongs to this player it helps our score, if it does not it hurts our score
-			int modifier = state.Get(pos) == GetPieceType() ? 1 : -1;
+			if (seen.contains(pos))
+				continue;
 			
-			// Find the closest distance^2 from this pos to either the center or one of the corners.
-			double closestDist = Double.POSITIVE_INFINITY;
-			Vector2d closestVec = null;
-			for (Vector2d point : points) {
-				double dist = (pos.X - point.X)*(pos.X - point.X) + (pos.Y - point.Y)*(pos.Y - point.Y);
-				if (dist < closestDist) {
-					closestDist = dist;
-					closestVec = point;
+			int modifier = state.Get(pos) == GetPieceType() ? 1 : -1;
+			ArrayList<Vector2i> directions = new ArrayList<Vector2i>(4);
+			directions.add(new Vector2i(0, 1));
+			directions.add(new Vector2i(1, 0));
+			directions.add(new Vector2i(1, 1));
+			directions.add(new Vector2i(1, -1));
+
+			for (Vector2i dir : directions) {
+				Iterable<Vector2i> line = state.LongestLine(pos, dir);
+				int count = 0;
+				for (Vector2i vec : line) {
+					seen.add(vec);
+					count++;
 				}
-				
-				// If this point is closest to the center, give twice as many points as something close to a corner
-				// If distance is zero we can't divide by it, so be careful
-				if (closestVec.equals(points.get(0)))
-					stateValue += modifier * (closestDist == 0 ? 150: 100 / closestDist);
-				else
-					stateValue += modifier * (closestDist == 0 ? 75: 50 / closestDist);
+				// Subtract 1 from count so lengths of 1 do not help score at all
+				score += modifier * (count - 1);
 			}
 		}
-		return stateValue;
+		
+		return score;
 	}
 	
 	/**

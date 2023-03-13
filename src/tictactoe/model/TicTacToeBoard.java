@@ -45,7 +45,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 			throw new NullPointerException();
 		
 		if (!ContainsIndex(index))
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException("Get: Board does not contain index " + index);
 		
 		/* If the board initialized correctly there should be no null cells,
 		 * but this behavior is specified in the doc so I implemented it to be safe
@@ -69,7 +69,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 			throw new NullPointerException();
 		
 		if (!ContainsIndex(index))
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException("Set: Board does not include index " + index);
 		
 		// Increase count if we are filling a new cell
 		if (Get(index).equals(PieceType.NONE) && !t.equals(PieceType.NONE)) {
@@ -95,7 +95,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 			throw new NullPointerException();
 		
 		if (!ContainsIndex(index))
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException("Remove: Board does not contain index " + index);
 		
 		// If the position was already null, we don't remove anything
 		if (Board[index.Y][index.X] == PieceType.NONE)
@@ -167,7 +167,7 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 						if (!hasNext())
 							throw new NoSuchElementException();
 						
-						Vector2i returnVector = new Vector2i(currentIndex / Width(), currentIndex % Width());
+						Vector2i returnVector = new Vector2i(currentIndex % Width, currentIndex / Width);
 						currentIndex++;
 						return returnVector;
 					}
@@ -452,13 +452,8 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 		return returnType;
 	}
 	
-	/**
-	 * Obtain the largest possible line in a direction specified by an offset vector.
-	 * @param center The starting point of the line, will be searched on both sides.
-	 * @param offset The direction to search in.
-	 * @return An iterable containing each cell in the longest line in that direction. Order may not be correct.
-	 */
-	protected Iterable<Vector2i> LongestLine(Vector2i start, Vector2i offset)
+	@Override
+	public Iterable<Vector2i> LongestLine(Vector2i start, Vector2i offset)
 	{
 		PieceType searchType = Get(start);
 		Vector2i furthestBack = start;
