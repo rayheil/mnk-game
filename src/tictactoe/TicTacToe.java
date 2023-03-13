@@ -117,9 +117,7 @@ public class TicTacToe extends GameEngine
 	{return;}
 	
 	@Override protected void Update(long delta)
-	{
-		return;
-	}
+	{return;}
 	
 	@Override protected void LateUpdate(long delta)
 	{

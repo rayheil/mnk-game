@@ -36,11 +36,11 @@ the time that I'm willing to on this project. I know I could have gotten an
 extension, but I can't cope with having this hanging over my head for any
 longer. Detail on what this code can and can't handle below.
 
-The AI runs well (under 30s evaluation times) at level 10 on a 4x4 board, but a
-4x5 board is too much for the max level AI. With a lower difficulty level such
-as 7 (which is still very competent at the game especially against one
-sleep-deprived Ray), the size of the board can be pushed up to a 6x6, which
-fills my screen.
+The AI runs well (around 10s evaluation times on my computer) at level 10 on a
+4x4 board, but a 4x5 board is too much for the max level AI. With a lower
+difficulty level such as 7 (which is still very competent at the game especially
+against one sleep-deprived Ray), the size of the board can be pushed up to a
+6x6, which fills my screen.
 
 It's not great efficiency, but I've taken by best attempts at
 alpha-beta pruning, static state evaluation, and child state generation and I

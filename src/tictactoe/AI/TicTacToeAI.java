@@ -56,17 +56,18 @@ public class TicTacToeAI implements ITicTacToeAI
 		if (Difficulty == 1)
 			return GetRandomMove(board);
 		
+		// Every other difficulty does minimax with varying depth
 		double best_score = Double.NEGATIVE_INFINITY;
 		Vector2i best_move = null;
-		// Search every child state of this board, keeping track of which gets the best minimax score when maximizing
-		for (Vector2i move : LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t)))
+		for (Vector2i move : GetChildStates(board))
 		{
 			ITicTacToeBoard cloned = board.Clone();
 			cloned.Set(GetPieceType(), move);
-			
-			// This is effectively one layer of minimax, so we start out by decreasing depth and maximizing
+
+			// We start with depth of difficulty-2 because 1 level is covered by random play,
+			// and 1 level is covered by this move selection loop
 			double score = Minimax(cloned, Difficulty-2, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
-			if (score >= best_score) { // if no state is winnable we should still decide a move.
+			if (score >= best_score) { // if no state is winnable (noticable on a 2x2) we should still decide a move.
 				best_score = score;
 				best_move = move;
 			}
