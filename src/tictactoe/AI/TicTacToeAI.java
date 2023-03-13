@@ -95,8 +95,10 @@ public class TicTacToeAI implements ITicTacToeAI
 			double maxEval = Double.NEGATIVE_INFINITY;
 			
 			// For each child position, recursively find the move that helps the AI most
-			for (ITicTacToeBoard next : GetChildStates(state, GetPieceType())) {
-				maxEval = Double.max(maxEval, Minimax(next, depth-1, alpha, beta, false));
+			for (Vector2i next : GetChildStates(state)) {
+				ITicTacToeBoard cloned = state.Clone();
+				cloned.Set(GetPieceType(), next);
+				maxEval = Double.max(maxEval, Minimax(cloned, depth-1, alpha, beta, false));
 				// If we did too well the minimizer will never choose this, prune
 				alpha = Double.max(alpha, maxEval);
 				if (beta <= alpha) {
@@ -110,12 +112,14 @@ public class TicTacToeAI implements ITicTacToeAI
 			double minEval = Double.POSITIVE_INFINITY;
 			
 			// For each child position, recursively find the move that hurts the AI most
-			for (ITicTacToeBoard next : GetChildStates(state, GetOpponentPieceType())) {
-				minEval = Double.min(minEval, Minimax(next, depth-1, alpha, beta, true));
+			for (Vector2i next : GetChildStates(state)) {
+				ITicTacToeBoard cloned = state.Clone();
+				cloned.Set(GetOpponentPieceType(), next);
+				minEval = Double.min(minEval, Minimax(cloned, depth-1, alpha, beta, true));
 				// If we did too poorly the maximizer will never choose this, prune
 				beta = Double.min(beta, minEval);
 				if (beta <= alpha) {
-					Prunes++; // TODO remove
+					Prunes++; // TODO remove\
 					break;
 				}
 			}
@@ -184,21 +188,22 @@ public class TicTacToeAI implements ITicTacToeAI
 	}
 	
 	/**
-	 * Return an iterator containing all the possible play states from the current state. 
+	 * Return an iterator containing all the possible positions to play from the current state. 
 	 * Moves that are the most likely to be useful are returned first, to help with alpha/beta pruning.
 	 * @param board The current board state.
-	 * @param played The type of piece that will be played.
 	 * @return Iterable over all empty cells in the board
 	 */
 	// TODO "it is wise to explore positions that are more likely to be good first" how do I do that???
 	// it's an optimization thing that is obvious, but it's so scarryyyyy. like, GetChild should return the maybe best moves first?
-	public Iterable<ITicTacToeBoard> GetChildStates(ITicTacToeBoard board, PieceType playedPiece)
+	public Iterable<Vector2i> GetChildStates(ITicTacToeBoard board)
 	{
-		LinkedList<ITicTacToeBoard> childStates = new LinkedList<ITicTacToeBoard>();
+		LinkedList<Vector2i> childStates = new LinkedList<Vector2i>();
 		
 		/*
 		 * Locate and add the centermost square(s) first
 		 */
+		
+		Vector2i pos;
 		
 		// Width and height of the center of the board depend on if dimensions are even or odd.
 		int centerWidth = (board.Width() % 2 == 0) ? 2 : 1;
@@ -217,24 +222,27 @@ public class TicTacToeAI implements ITicTacToeAI
 		{
 			for (int y = centerYStart; y < centerYEnd; y++)
 			{
-				Vector2i pos = new Vector2i(x, y);
+				pos = new Vector2i(x, y);
 				if (board.IsCellEmpty(pos))
-					childStates.add(PlayBoard(board, playedPiece, pos));
+					childStates.add(pos);
 			}
 		}
 		
 		/*
-		 * Add the squares at the corners of the grid.
+		 * Add the squares at the corners of the grid if they are available.
 		 */
-		ArrayList<Vector2i> corners = new ArrayList<Vector2i>(4);
-		corners.add(new Vector2i(0, 0));
-		corners.add(new Vector2i(board.Width() - 1, 0));
-		corners.add(new Vector2i(0, board.Height() - 1));
-		corners.add(new Vector2i(board.Width() - 1, board.Height() - 1));
-		for (Vector2i pos : corners) {
-			if (board.IsCellEmpty(pos))
-				childStates.add(PlayBoard(board, playedPiece, pos));
-		}
+		pos = new Vector2i(0, 0);
+		if (board.IsCellEmpty(pos))
+			childStates.add(pos);
+		pos = new Vector2i(board.Width() - 1, 0);
+		if (board.IsCellEmpty(pos))
+			childStates.add(pos);
+		pos = new Vector2i(0, board.Height() - 1);
+		if (board.IsCellEmpty(pos))
+			childStates.add(pos);
+		pos = new Vector2i(board.Width() - 1, board.Height() - 1);
+		if (board.IsCellEmpty(pos))
+			childStates.add(pos);
 
 		/*
 		 * Add the other squares in the grid, not caring as much about the order now.
@@ -248,9 +256,9 @@ public class TicTacToeAI implements ITicTacToeAI
 					continue;
 				if ((x == 0 || x == board.Width() - 1) && (y == 0 || y == board.Height() - 1))
 					continue;
-				Vector2i pos = new Vector2i(x, y);
+				pos = new Vector2i(x, y);
 				if (board.IsCellEmpty(pos))
-					childStates.add(PlayBoard(board, playedPiece, pos));
+					childStates.add(pos);
 			}
 		}
 		

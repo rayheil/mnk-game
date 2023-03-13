@@ -339,15 +339,13 @@ public class TicTacToeBoard implements ITicTacToeBoard {
 	@Override
 	public ITicTacToeBoard Clone() {
 		TicTacToeBoard clonedBoard = new TicTacToeBoard(Width(), Height(), WinningLength());
-		for (int y = 0; y < Height(); y++) {
-			for (int x = 0; x < Width; x++) {
-				Vector2i pos = new Vector2i(x, y);
-				PieceType t = this.Get(pos);
-				clonedBoard.Set(t, pos);
-			}
+		for (Vector2i pos : IndexSet(true)) {
+			PieceType t = this.Get(pos);
+			clonedBoard.Set(t, pos);
 		}
-		clonedBoard.Victor = Victor();
-		clonedBoard.Count = Count();
+		
+		clonedBoard.Victor = this.Victor;
+		clonedBoard.Count = this.Count;
 		return clonedBoard;
 	}
 

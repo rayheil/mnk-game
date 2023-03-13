@@ -43,7 +43,7 @@ public class AITests {
 	{
 		TicTacToeBoard b = new TicTacToeBoard(3, 3, 3);
 		TicTacToeAI ai = new TicTacToeAI(Player.CROSS);
-		Iterable<ITicTacToeBoard> states = ai.GetChildStates(b, PieceType.CROSS);
+		Iterable<Vector2i> states = ai.GetChildStates(b);
 		assertEquals(9, LINQ.Count(states));
 	}
 	
@@ -52,7 +52,7 @@ public class AITests {
 	{
 		TicTacToeBoard b = new TicTacToeBoard(10, 10, 10);
 		TicTacToeAI ai = new TicTacToeAI(Player.CROSS);
-		Iterable<ITicTacToeBoard> states = ai.GetChildStates(b, PieceType.CROSS);
+		Iterable<Vector2i> states = ai.GetChildStates(b);
 		assertEquals(100, LINQ.Count(states));
 	}
 	
@@ -61,7 +61,7 @@ public class AITests {
 	{
 		TicTacToeBoard b = new TicTacToeBoard(3, 7, 3);
 		TicTacToeAI ai = new TicTacToeAI(Player.CROSS);
-		Iterable<ITicTacToeBoard> states = ai.GetChildStates(b, PieceType.CROSS);
+		Iterable<Vector2i> states = ai.GetChildStates(b);
 		assertEquals(21, LINQ.Count(states));
 	}
 	
@@ -74,7 +74,7 @@ public class AITests {
 		{
 			ITicTacToeBoard copy = b.Clone();
 			copy.Set(PieceType.CIRCLE, new Vector2i(i % 3, i / 3));
-			Iterable<ITicTacToeBoard> states = ai.GetChildStates(copy, PieceType.CROSS);
+			Iterable<Vector2i> states = ai.GetChildStates(copy);
 			assertEquals("Failed on iteration " + i + ".", 8, LINQ.Count(states));
 		}
 	}
