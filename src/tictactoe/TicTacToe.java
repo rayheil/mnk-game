@@ -43,7 +43,7 @@ public class TicTacToe extends GameEngine
 	public TicTacToe(int width, int height, int win_len, boolean player1_human, int ai1_difficulty, boolean player2_human, int ai2_difficulty)
 	{
 		// Tell GameEngine to initialize a game window with the right size
-		super("CSC 207 Tic Tac Toe",null,168 * width + 16,168 * height + 39);
+		super("CSC 207 Tic Tac Toe", null, 168 * width + 16, 168 * height + 39);
 		
 		if (width < 1 || height < 1 || win_len < 1)
 			throw new IllegalArgumentException("Nonpositive arguments for width, height, or win_len are illegal.");

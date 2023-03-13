@@ -64,9 +64,10 @@ public class TicTacToeAI implements ITicTacToeAI
 			System.out.println("checking another next move...");
 			ITicTacToeBoard cloned = board.Clone();
 			cloned.Set(GetPieceType(), move);
+			
+			// This is effectively one layer of minimax, so we start out by decreasing depth and maximizing
 			double score = Minimax(cloned, Difficulty-1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
-			// >= because we still need to play if there is no winning state (noticeable as P2 on a 2x2)
-			if (score >= best_score) {
+			if (score >= best_score) { // if no state is winnable we should still decide a move.
 				best_score = score;
 				best_move = move;
 			}

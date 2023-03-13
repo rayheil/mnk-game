@@ -188,7 +188,7 @@ public class TicTacToeController implements ITicTacToeController
 			break;
 		default:
 			break;
-		}
+		}		
 	}
 	
 	public void OnError(Exception e)
@@ -214,12 +214,15 @@ public class TicTacToeController implements ITicTacToeController
 	 */
 	public PieceType ActivePiece()
 	{
-		if (ActivePlayer().equals(Player.CIRCLE))
+		switch (ActivePlayer())
+		{
+		case CIRCLE:
 			return PieceType.CIRCLE;
-		else if (ActivePlayer().equals(Player.CROSS))
+		case CROSS:
 			return PieceType.CROSS;
-		// Triggers on Player.NEITHER and Player.NULL, but these will not happen during play
-		throw new IllegalStateException();
+		default:
+			throw new IllegalStateException();		
+		}
 	}
 	
 	public int Width()
@@ -289,6 +292,7 @@ public class TicTacToeController implements ITicTacToeController
 	
 	/**
 	 * The amount of time delay between goldenizations upon victory.
+	 * TODO maybe remove this
 	 */
 	protected final long GoldenLag = 100;
 	
