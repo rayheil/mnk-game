@@ -69,7 +69,7 @@ public class TicTacToeController implements ITicTacToeController
 	 */
 	public void Initialize()
 	{
-		// Create the board
+		// Create the model
 		Model = new TicTacToeBoard(Width,Height,WinningLength);
 		Model.Subscribe(this);
 		
@@ -137,16 +137,15 @@ public class TicTacToeController implements ITicTacToeController
 		// Pieces can only be played if the model is not finished
 		if (Input.GracelessInputSatisfied("Select")) {
 			// Only allow placement if the cell is empty
-			if (Model.IsCellEmpty(View.CursorPosition()))
+			if (Model.IsCellEmpty(View.CursorPosition())) {
 				PlacePiece(View.CursorPosition());
+			}
 		}
- 		
 		return;
 	}
-
+	
 	protected void PlacePiece(Vector2i pos)
 	{
-		View.PlacePiece(pos, ActivePiece());
 		Model.Set(ActivePiece(), pos);
 		if (ActivePlayer().equals(Player.CROSS))
 			ActivePlayer = Player.CIRCLE;

@@ -1,16 +1,27 @@
 package tictactoe.AI;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 import gamecore.LINQ.LINQ;
+import gamecore.datastructures.vectors.Vector2d;
 import gamecore.datastructures.vectors.Vector2i;
 import tictactoe.model.ITicTacToeBoard;
 import tictactoe.model.Player;
 import tictactoe.model.PieceType;
 
-public class TicTacToeAI implements ITicTacToeAI {
-
+/**
+ * 
+ * Tic Tac Toe AI that controls one player with variable difficulty, from 1 to 10.
+ * 
+ * @author Ray Heil
+ *
+ */
+public class TicTacToeAI implements ITicTacToeAI 
+{
 	/**
 	 * Default constructor that creates an AI of difficulty 5. Why not?
 	 */
@@ -35,6 +46,7 @@ public class TicTacToeAI implements ITicTacToeAI {
 		
 		Player = player;
 		Difficulty = difficulty;
+		Prunes = 0; // TODO REMOVE
 	}
 	
 	@Override
@@ -48,12 +60,13 @@ public class TicTacToeAI implements ITicTacToeAI {
 		// Search every child state of this board, keeping track of which gets the best minimax score when maximizing
 		for (Vector2i move : LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t)))
 		{
+			// TODO remove debug print 
 			System.out.println("checking another next move...");
 			ITicTacToeBoard cloned = board.Clone();
 			cloned.Set(GetPieceType(), move);
-			// TODO minimizing first seems to make the AI work better, I don't know why
-			double score = Minimax(cloned, Difficulty, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
-			if (score > best_score) {
+			double score = Minimax(cloned, Difficulty-1, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, false);
+			// >= because we still need to play if there is no winning state (noticeable as P2 on a 2x2)
+			if (score >= best_score) {
 				best_score = score;
 				best_move = move;
 			}
@@ -85,8 +98,10 @@ public class TicTacToeAI implements ITicTacToeAI {
 				maxEval = Double.max(maxEval, Minimax(next, depth-1, alpha, beta, false));
 				// If we did too well the minimizer will never choose this, prune
 				alpha = Double.max(alpha, maxEval);
-				if (beta <= alpha)
+				if (beta <= alpha) {
+					Prunes++; // TODO remove
 					break;
+				}
 			}
 			return maxEval;
 		}
@@ -98,9 +113,13 @@ public class TicTacToeAI implements ITicTacToeAI {
 				minEval = Double.min(minEval, Minimax(next, depth-1, alpha, beta, true));
 				// If we did too poorly the maximizer will never choose this, prune
 				beta = Double.min(beta, minEval);
-				if (beta <= alpha)
+				if (beta <= alpha) {
+					Prunes++; // TODO remove
 					break;
+				}
 			}
+			System.out.println("  pruned " + Prunes + " times.");
+			Prunes = 0;
 			return minEval;
 		}
 	}
@@ -112,7 +131,9 @@ public class TicTacToeAI implements ITicTacToeAI {
 	 */
 	protected double StaticEvalutation(ITicTacToeBoard state)
 	{
-		// Return inf if we won, -inf if we lost, and 0 if we tied.
+		/*
+		 * If state is finished, return a value based on who (if anyone) won
+		 */
 		if (state.IsFinished())
 		{
 			if (state.Victor().equals(GetPlayer()))
@@ -123,68 +144,130 @@ public class TicTacToeAI implements ITicTacToeAI {
 				return Double.NEGATIVE_INFINITY;
 		}
 		
-		// Count up all the squares and weight them by value.
-		// TODO this is terrible, but something bigger is broken and
-		// needs fixing before I handle this
-		int value = 0;
-		for (Vector2i pos : state.IndexSet(true)) {
-			// If the square is ours it has a modifier of 1 and helps the state's score,
-			// If it is theirs it has a modifier of -1 and hurts the state's score.
+		/*
+		 * If state is NOT finished, tally up the 
+		 */
+		ArrayList<Vector2d> points = new ArrayList<Vector2d>(5);
+		points.add(new Vector2d(state.Width() / 2, state.Height() / 2));
+		points.add(new Vector2d(0, 0));
+		points.add(new Vector2d(state.Width() - 1, 0));
+		points.add(new Vector2d(0, state.Height() - 1));
+		points.add(new Vector2d(state.Width() - 1, state.Height() - 1));
+				
+		// If the state is not finished, tally up the most influential played squares
+		int stateValue = 0;
+		for (Vector2i pos : state.IndexSet(true))
+		{
+			// If the square belongs to this player it helps our score, if it does not it hurts our score
 			int modifier = state.Get(pos) == GetPieceType() ? 1 : -1;
 			
-			// Center squares do not have X or Y coordinate along an edge
-			if ((pos.X > 0 && pos.X < state.Width() - 1) && (pos.Y > 0 && pos.Y < state.Height() - 1))
-				value += modifier * CenterWeight;
-			
-			// Corners have both X and Y coordinates along an edge
-			else if ((pos.X == 0 || pos.X == state.Width() - 1) && (pos.Y == 0 || pos.Y == state.Height() - 1))
-				value += modifier * CornerWeight;
-			
-			// Edges have exactly one coordinate along an edge
-			else
-				value += modifier * EdgeWeight;
+			// Find the closest distance^2 from this pos to either the center or one of the corners.
+			double closestDist = Double.POSITIVE_INFINITY;
+			Vector2d closestVec = null;
+			for (Vector2d point : points) {
+				double dist = (pos.X - point.X)*(pos.X - point.X) + (pos.Y - point.Y)*(pos.Y - point.Y);
+				if (dist < closestDist) {
+					closestDist = dist;
+					closestVec = point;
+				}
+				
+				// If this point is closest to the center, give twice as many points as something close to a corner
+				// If distance is zero we can't divide by it, so be careful
+				if (closestVec.equals(points.get(0)))
+					stateValue += modifier * (closestDist == 0 ? 150: 100 / closestDist);
+				else
+					stateValue += modifier * (closestDist == 0 ? 75: 50 / closestDist);
+			}
 		}
-		
-		return value;
+		return stateValue;
 	}
 	
 	/**
-	 * Return an iterator containing all the possible play states from the current state
+	 * Return an iterator containing all the possible play states from the current state. 
+	 * Moves that are the most likely to be useful are returned first, to help with alpha/beta pruning.
 	 * @param board The current board state.
 	 * @param played The type of piece that will be played.
 	 * @return Iterable over all empty cells in the board
 	 */
 	// TODO "it is wise to explore positions that are more likely to be good first" how do I do that???
 	// it's an optimization thing that is obvious, but it's so scarryyyyy. like, GetChild should return the maybe best moves first?
-	protected Iterable<ITicTacToeBoard> GetChildStates(ITicTacToeBoard board, PieceType playedPiece)
+	public Iterable<ITicTacToeBoard> GetChildStates(ITicTacToeBoard board, PieceType playedPiece)
 	{
-		//System.out.println("getting child stated with piece " + playedPiece);
-		return new Iterable<ITicTacToeBoard>()
-		{
-			@Override
-			public Iterator<ITicTacToeBoard> iterator() {
-				return new Iterator<ITicTacToeBoard>()
-				{
-					@Override
-					public boolean hasNext() {
-						return Iter.hasNext();
-					}
+		LinkedList<ITicTacToeBoard> childStates = new LinkedList<ITicTacToeBoard>();
+		
+		/*
+		 * Locate and add the centermost square(s) first
+		 */
+		
+		// Width and height of the center of the board depend on if dimensions are even or odd.
+		int centerWidth = (board.Width() % 2 == 0) ? 2 : 1;
+		int centerHeight = (board.Height() % 2 == 0) ? 2 : 1;
 
-					@Override
-					public ITicTacToeBoard next() {
-						if (!Iter.hasNext())
-							throw new NoSuchElementException();
-						
-						ITicTacToeBoard playedBoard = board.Clone();
-						playedBoard.Set(playedPiece, Iter.next());
-						return playedBoard;
-					}
-					
-					protected Iterator<Vector2i> Iter = LINQ.Where(board.IndexSet(), t -> board.IsCellEmpty(t)).iterator();
-				};
+		// The position that the center of the board starts.
+		int centerXStart = (board.Width() - centerWidth) / 2;
+		int centerYStart = (board.Height() - centerHeight) / 2;
+
+		// The position that the center of the board ends (not inclusive)
+		int centerXEnd = centerXStart + centerWidth;
+		int centerYEnd = centerYStart + centerHeight;
+		
+		// Add all the center squares to the linked list
+		for (int x = centerXStart; x < centerXEnd; x++)
+		{
+			for (int y = centerYStart; y < centerYEnd; y++)
+			{
+				Vector2i pos = new Vector2i(x, y);
+				if (board.IsCellEmpty(pos))
+					childStates.add(PlayBoard(board, playedPiece, pos));
 			}
-			
-		};
+		}
+		
+		/*
+		 * Add the squares at the corners of the grid.
+		 */
+		ArrayList<Vector2i> corners = new ArrayList<Vector2i>(4);
+		corners.add(new Vector2i(0, 0));
+		corners.add(new Vector2i(board.Width() - 1, 0));
+		corners.add(new Vector2i(0, board.Height() - 1));
+		corners.add(new Vector2i(board.Width() - 1, board.Height() - 1));
+		for (Vector2i pos : corners) {
+			if (board.IsCellEmpty(pos))
+				childStates.add(PlayBoard(board, playedPiece, pos));
+		}
+
+		/*
+		 * Add the other squares in the grid, not caring as much about the order now.
+		 */
+		for (int x = 0; x < board.Width(); x++)
+		{
+			for (int y = 0; y < board.Height(); y++)
+			{
+				// Don't add corners or center twice
+				if ((x >= centerXStart && x < centerXStart + centerWidth) && (y >= centerYStart && y < centerYStart + centerHeight))
+					continue;
+				if ((x == 0 || x == board.Width() - 1) && (y == 0 || y == board.Height() - 1))
+					continue;
+				Vector2i pos = new Vector2i(x, y);
+				if (board.IsCellEmpty(pos))
+					childStates.add(PlayBoard(board, playedPiece, pos));
+			}
+		}
+		
+		return childStates;
+	}
+	
+	/**
+	 * Return a copy of a board with a specified move made.
+	 * @param board The board to copy.
+	 * @param playedPiece The type of piece to play.
+	 * @param move The position at which to play.
+	 * @return A copy of the board with the specified move made. The original board will not be modified.
+	 */
+	protected ITicTacToeBoard PlayBoard(ITicTacToeBoard board, PieceType playedPiece, Vector2i move)
+	{
+		ITicTacToeBoard copy = board.Clone();
+		copy.Set(playedPiece, move);
+		return copy;
 	}
 
 	@Override
@@ -235,10 +318,7 @@ public class TicTacToeAI implements ITicTacToeAI {
 	protected Player Player;
 	
 	/**
-	 * Weights for the locations of cells on the board, used
-	 * to decide the value of a move.
+	 * TODO REMOVE COUNT OF PRUNES
 	 */
-	protected final int CenterWeight = 3;
-	protected final int CornerWeight = 2;
-	protected final int EdgeWeight = 1;
+	protected int Prunes;
 }

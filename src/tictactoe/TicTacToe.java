@@ -74,7 +74,10 @@ public class TicTacToe extends GameEngine
 		
 		// Initialize some key bindings
 		Bindings.AddKeyBinding("Exit",KeyEvent.VK_ESCAPE);
-		Bindings.AddKeyBinding("Reset",KeyEvent.VK_TAB);
+		
+		Bindings.AddKeyBinding("m_Reset",KeyEvent.VK_TAB);
+		Bindings.AddKeyBinding("a_Reset",KeyEvent.VK_R);
+		Bindings.AddORBinding("Reset","m_Reset","a_Reset");
 		
 		Bindings.AddKeyBinding("m_Select",KeyEvent.VK_SPACE);
 		Bindings.AddKeyBinding("a_Select",KeyEvent.VK_ENTER);

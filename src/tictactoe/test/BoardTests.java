@@ -7,7 +7,6 @@ import gamecore.LINQ.LINQ;
 import gamecore.datastructures.vectors.Vector2i;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertNull;
@@ -16,7 +15,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class BoardTests
@@ -202,7 +200,7 @@ public class BoardTests
 		b.Set(PieceType.CROSS, new Vector2i(1, 8));
 				
 		Iterable<Vector2i> winning = b.WinningSet(new Vector2i(2, 7));
-		System.out.println(LINQ.Count(winning));
+		assertEquals(5, LINQ.Count(winning));
 	}
 	
 	@Test

@@ -1,59 +1,60 @@
-# M, N, K Game / Tic Tac Toe 
+# Tic Tac Toe 
 
-A [m,n,k game](https://en.wikipedia.org/wiki/M,n,k-game) (like Tic-Tac-Toe, but
-with variable sizes). Written in Java for CSC-207 at Grinnell College in the
-S23 semester. 
+This is my implementation of an [m,n,k
+game](https://en.wikipedia.org/wiki/M,n,k-game). It's Tic-Tac-Toe, but with
+variable sizes. Also, there's AI. (What fun!) Project for CSC207 at Grinnell
+College in the Spring 2023 semester.
 
-## Installation
 
-TODO this still needs a lot of work
+# Running
 
-It'll probably be something along the lines of:
+The class that contains the `main` method to run this code is
+`tictactoe.Bootstrap`.
 
-- Have the right Java installed
+To run through eclipse, open the project and select Run > Run Configurations
+from the topbar. Under the Main tab, click to search for a main class and select
+`tictactoe.Bootstrap`.
 
-- Extract the file from the archive
+Under the Arguments tab, you need to enter the game parameters. For a basic game
+of tic-tac-toe where you play first against an AI, enter the program arguments
+`3 3 3 false`. Then, click Run at the bottom of the popup window to start the
+game. For more complex games, see the Run Configuration section below.
 
-- Run the script I made with command line arguments
 
-		- May be less easy than I thought, we will see. Maybe the instructions
-		  are just along the lines of "Run through Eclipse."
-
-## Running
-
-The program takes three to five command line arguments, as detailed below.
-
-### Two human players
-
-Enter integers for the width and height of the board, as well as the required
-number of squares in a row required to win. The winning length may not be less
-than either the width or the height of the board.
-
-```
-./runme.sh WIDTH HEIGHT WIN_LENGTH
-```
-
-### One AI player
-
-If `AI_PLAYER` is true the AI will play as crosses (first player), and if it is
-false the computer will play as circles (second player).
-
-```
-./runme.sh WIDTH HEIGHT WIN_LENGTH AI_PLAYER
-```
-
-### One AI player with set difficulty
-
-The specified difficulty can be an integer
-between 1 and 10, with 1 being the easiest and 10 being the hardest.
-
-```
-./runme.sh WIDTH HEIGHT WIN_LENGTH AI_PLAYER DIFFICULTY
-```
-
-## Controls
+# Controls
 
 Use WASD or arrow keys to move the cursor, and press space to place your piece
 on the tile it is hovering over.
 
 Press Tab to reset the game and Esc to quit.
+
+If you are playing against an AI, you cannot move the cursor or play while it
+decides its move. It can take a while to do so if the AI is high level or if the
+board is large, so be warned!
+
+
+# Run Configuration
+
+The program takes three to five command line arguments. Bracketed parameters are optional.
+
+```
+WIDTH HEIGHT WIN_LENGTH [AI_PLAYER [AI_DIFFICULTY]]
+```
+
+The meaning of each parameter is detailed below.
+
+- `WIDTH` is the width of the board in squares.
+
+- `HEIGHT` is the height of the board in squares.
+
+- `WIN_LENGTH` is the number of symbols in a row a player knows to win. It
+  cannot be less than either `WIDTH` or `HEIGHT`.
+
+- `AI_PLAYER` toggles which player is an AI. If it is not present, both players
+  will be controlled by humans. If it is `true` the first player will be
+  controlled by an AI, and if it is `false` the second player will be controlled
+  by an AI.
+
+- `AI_DIFFICULTY` modifies the difficulty of the AI player. It should be between
+  1 and 10 (inclusive), with 1 being the easiest and 10 being the hardest. If it
+  is not present, the AI will default to a dificulty of 5.
